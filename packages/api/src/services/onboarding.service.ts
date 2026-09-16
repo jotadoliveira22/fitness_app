@@ -7,12 +7,15 @@ import {
 } from "../data-access/user-preferences.repository.js";
 import { insertGoals, type GoalRecord } from "../data-access/goals.repository.js";
 import { insertWeightLog, type WeightLogRecord } from "../data-access/weight-logs.repository.js";
+import { generateInitialProgram } from "../engines/training/generate-program.js";
+import type { TrainingProgramRecord } from "../data-access/training-programs.repository.js";
 
 export interface OnboardingResult {
   profile: ProfileRecord;
   preferences: UserPreferencesRecord;
   goals: GoalRecord[];
   weightLog: WeightLogRecord | null;
+  trainingProgram: TrainingProgramRecord | null;
 }
 
 /**
@@ -62,5 +65,12 @@ export async function saveProfileSetup(
     ? await insertWeightLog(userClient, userId, input.weightKg)
     : null;
 
-  return { profile, preferences, goals, weightLog };
+  const trainingProgram = await generateInitialProgram(userClient, userId, {
+    trainingContext: input.trainingContext,
+    experienceLevel: input.experienceLevel,
+    trainingDaysPerWeek: input.trainingDaysPerWeek,
+    preferredTrainingDays: input.preferredTrainingDays,
+  });
+
+  return { profile, preferences, goals, weightLog, trainingProgram };
 }

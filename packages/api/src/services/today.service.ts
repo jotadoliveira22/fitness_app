@@ -3,10 +3,21 @@ import { getOwnProfile, type ProfileRecord } from "../data-access/profiles.repos
 import { listActiveGoals, type GoalRecord } from "../data-access/goals.repository.js";
 import { getCheckinByDate, type DailyCheckinRecord } from "../data-access/daily-checkins.repository.js";
 import { getLatestWeightLog, type WeightLogRecord } from "../data-access/weight-logs.repository.js";
+import { getSessionForDate } from "../data-access/workout-sessions.repository.js";
+import { getForSession } from "../data-access/workout-exercises.repository.js";
+import type { SessionStatus, TrainingContext } from "@fitness-app/shared";
 
 export interface TodayInsight {
   text: string;
   source: "system";
+}
+
+export interface TodayWorkoutSummary {
+  sessionId: string;
+  objective: string | null;
+  trainingContext: TrainingContext;
+  status: SessionStatus;
+  exerciseCount: number;
 }
 
 export interface TodayResult {
@@ -16,8 +27,7 @@ export interface TodayResult {
   activeGoals: GoalRecord[];
   checkin: DailyCheckinRecord | null;
   latestWeight: WeightLogRecord | null;
-  /** Sprint 2 (Training Engine) lo completa. */
-  workout: null;
+  workout: TodayWorkoutSummary | null;
   /** Sprint 3 (Nutrition Engine) lo completa. */
   nutrition: null;
   /** Sprint 4 (Fasting) lo completa. */
@@ -37,20 +47,31 @@ function todayIso(): string {
 function buildInsight(
   onboardingCompleted: boolean,
   checkin: DailyCheckinRecord | null,
+  workout: TodayWorkoutSummary | null,
 ): TodayInsight {
   if (!onboardingCompleted) {
     return { text: "Completá tu perfil para empezar a usar la app.", source: "system" };
   }
-  if (!checkin) {
+
+  const parts: string[] = [];
+  if (checkin) {
+    if (checkin.energy !== null) parts.push(`energía ${checkin.energy}/5`);
+    if (checkin.sleepQuality !== null) parts.push(`sueño ${checkin.sleepQuality}/5`);
+    if (checkin.stress !== null) parts.push(`estrés ${checkin.stress}/5`);
+  }
+
+  if (workout && workout.status === "planned") {
+    const workoutText = `Hoy toca: ${workout.objective ?? "entrenamiento"} (${workout.exerciseCount} ejercicios).`;
     return {
-      text: "Todavía no registraste tu check-in de hoy.",
+      text: parts.length > 0 ? `${workoutText} Hoy registraste: ${parts.join(", ")}.` : workoutText,
       source: "system",
     };
   }
-  const parts: string[] = [];
-  if (checkin.energy !== null) parts.push(`energía ${checkin.energy}/5`);
-  if (checkin.sleepQuality !== null) parts.push(`sueño ${checkin.sleepQuality}/5`);
-  if (checkin.stress !== null) parts.push(`estrés ${checkin.stress}/5`);
+
+  if (!checkin) {
+    return { text: "Todavía no registraste tu check-in de hoy.", source: "system" };
+  }
+
   return {
     text: parts.length > 0 ? `Hoy registraste: ${parts.join(", ")}.` : "Check-in de hoy registrado.",
     source: "system",
@@ -64,14 +85,27 @@ export async function getToday(
 ): Promise<TodayResult> {
   const targetDate = date ?? todayIso();
 
-  const [profile, activeGoals, checkin, latestWeight] = await Promise.all([
+  const [profile, activeGoals, checkin, latestWeight, session] = await Promise.all([
     getOwnProfile(userClient, userId),
     listActiveGoals(userClient, userId),
     getCheckinByDate(userClient, userId, targetDate),
     getLatestWeightLog(userClient, userId),
+    getSessionForDate(userClient, userId, targetDate),
   ]);
 
   const onboardingCompleted = profile?.onboardingCompletedAt != null;
+
+  let workout: TodayWorkoutSummary | null = null;
+  if (session) {
+    const exercises = await getForSession(userClient, session.id);
+    workout = {
+      sessionId: session.id,
+      objective: session.objective,
+      trainingContext: session.trainingContext,
+      status: session.status,
+      exerciseCount: exercises.length,
+    };
+  }
 
   return {
     date: targetDate,
@@ -80,9 +114,9 @@ export async function getToday(
     activeGoals,
     checkin,
     latestWeight,
-    workout: null,
+    workout,
     nutrition: null,
     fasting: null,
-    insight: buildInsight(onboardingCompleted, checkin),
+    insight: buildInsight(onboardingCompleted, checkin, workout),
   };
 }
