@@ -8,6 +8,7 @@ import { getForSession } from "../data-access/workout-exercises.repository.js";
 import { getActivePlan } from "../data-access/nutrition-plans.repository.js";
 import { getActiveTargets } from "../data-access/nutrient-targets.repository.js";
 import { getLogsForDate } from "../data-access/food-logs.repository.js";
+import { getActiveFastingSession } from "../data-access/fasting-sessions.repository.js";
 import type { NutritionPlanSource, SessionStatus, TrainingContext } from "@fitness-app/shared";
 
 export interface TodayInsight {
@@ -29,6 +30,13 @@ export interface TodayNutritionSummary {
   consumedToday: { calories: number; proteinG: number; carbsG: number; fatG: number };
 }
 
+export interface TodayFastingSummary {
+  fastId: string;
+  startedAt: string;
+  targetHours: number | null;
+  elapsedHours: number;
+}
+
 export interface TodayResult {
   date: string;
   onboardingCompleted: boolean;
@@ -38,8 +46,7 @@ export interface TodayResult {
   latestWeight: WeightLogRecord | null;
   workout: TodayWorkoutSummary | null;
   nutrition: TodayNutritionSummary;
-  /** Sprint 4 (Fasting) lo completa. */
-  fasting: null;
+  fasting: TodayFastingSummary | null;
   insight: TodayInsight;
 }
 
@@ -93,16 +100,18 @@ export async function getToday(
 ): Promise<TodayResult> {
   const targetDate = date ?? todayIso();
 
-  const [profile, activeGoals, checkin, latestWeight, session, activePlan, targets, foodLogs] = await Promise.all([
-    getOwnProfile(userClient, userId),
-    listActiveGoals(userClient, userId),
-    getCheckinByDate(userClient, userId, targetDate),
-    getLatestWeightLog(userClient, userId),
-    getSessionForDate(userClient, userId, targetDate),
-    getActivePlan(userClient, userId),
-    getActiveTargets(userClient, userId),
-    getLogsForDate(userClient, userId, targetDate),
-  ]);
+  const [profile, activeGoals, checkin, latestWeight, session, activePlan, targets, foodLogs, activeFast] =
+    await Promise.all([
+      getOwnProfile(userClient, userId),
+      listActiveGoals(userClient, userId),
+      getCheckinByDate(userClient, userId, targetDate),
+      getLatestWeightLog(userClient, userId),
+      getSessionForDate(userClient, userId, targetDate),
+      getActivePlan(userClient, userId),
+      getActiveTargets(userClient, userId),
+      getLogsForDate(userClient, userId, targetDate),
+      getActiveFastingSession(userClient, userId),
+    ]);
 
   const onboardingCompleted = profile?.onboardingCompletedAt != null;
 
@@ -143,6 +152,15 @@ export async function getToday(
     consumedToday,
   };
 
+  const fasting: TodayFastingSummary | null = activeFast
+    ? {
+        fastId: activeFast.id,
+        startedAt: activeFast.startedAt,
+        targetHours: activeFast.targetHours,
+        elapsedHours: Math.round(((Date.now() - new Date(activeFast.startedAt).getTime()) / (60 * 60 * 1000)) * 10) / 10,
+      }
+    : null;
+
   return {
     date: targetDate,
     onboardingCompleted,
@@ -152,7 +170,7 @@ export async function getToday(
     latestWeight,
     workout,
     nutrition,
-    fasting: null,
+    fasting,
     insight: buildInsight(onboardingCompleted, checkin, workout),
   };
 }

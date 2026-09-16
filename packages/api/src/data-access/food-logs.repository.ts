@@ -122,3 +122,20 @@ export async function getLogsForDate(
 
   return results;
 }
+
+export async function listDistinctLogDatesSince(
+  client: SupabaseClient,
+  userId: string,
+  sinceDate: string,
+): Promise<string[]> {
+  const { data, error } = await client
+    .from("food_logs")
+    .select("log_date")
+    .eq("user_id", userId)
+    .gte("log_date", sinceDate);
+
+  if (error) throw new DataAccessError("No se pudo calcular la adherencia nutricional", error);
+
+  const dates = new Set((data as Array<{ log_date: string }>).map((row) => row.log_date));
+  return Array.from(dates);
+}

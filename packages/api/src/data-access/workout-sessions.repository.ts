@@ -93,6 +93,32 @@ export async function getSessionById(
   return data ? toRecord(data) : null;
 }
 
+export interface TrainingAdherenceCounts {
+  plannedSessions: number;
+  completedSessions: number;
+}
+
+export async function countSessionsSince(
+  client: SupabaseClient,
+  userId: string,
+  sinceDate: string,
+): Promise<TrainingAdherenceCounts> {
+  const { data, error } = await client
+    .from("workout_sessions")
+    .select("status")
+    .eq("user_id", userId)
+    .gte("scheduled_date", sinceDate)
+    .is("deleted_at", null);
+
+  if (error) throw new DataAccessError("No se pudo calcular la adherencia de entrenamiento", error);
+
+  const rows = data as Array<{ status: SessionStatus }>;
+  return {
+    plannedSessions: rows.length,
+    completedSessions: rows.filter((row) => row.status === "completed").length,
+  };
+}
+
 export async function getSessionForDate(
   client: SupabaseClient,
   userId: string,

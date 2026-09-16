@@ -92,3 +92,24 @@ export { getManageNutrition, type ManageNutritionResult } from "./engines/nutrit
 export { logMeal, type LogMealResult } from "./engines/nutrition/log-meal.js";
 export { saveMeal } from "./engines/nutrition/save-meal.js";
 export type { MealCandidateItem } from "./engines/nutrition/foods-matcher.js";
+
+// Progress + Fasting
+export { listWeightLogsSince } from "./data-access/weight-logs.repository.js";
+export { type BodyMeasurementRecord } from "./data-access/body-measurements.repository.js";
+export {
+  getPhotoById,
+  deletePhoto,
+  type ProgressPhotoRecord,
+} from "./data-access/progress-photos.repository.js";
+export {
+  getActiveFastingSession,
+  type FastingSessionRecord,
+} from "./data-access/fasting-sessions.repository.js";
+
+export { recordBodyMetrics, type RecordBodyMetricsResult } from "./engines/progress/record-body-metrics.js";
+export {
+  uploadProgressPhoto,
+  type UploadProgressPhotoResult,
+} from "./engines/progress/upload-progress-photo.js";
+export { getProgress, type ProgressResult } from "./engines/progress/get-progress.js";
+export { getManageFasting, startFast, finishFast, type ManageFastingResult } from "./engines/fasting/manage-fasting.js";

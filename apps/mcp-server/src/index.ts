@@ -8,6 +8,7 @@ import { registerProfileTools } from "./tools/profile.js";
 import { registerCheckinTools } from "./tools/checkin.js";
 import { registerTrainingTools } from "./tools/training.js";
 import { registerNutritionTools } from "./tools/nutrition.js";
+import { registerProgressTools } from "./tools/progress.js";
 
 const server = new McpServer({
   name: "fitness-app-mcp-server",
@@ -20,6 +21,7 @@ registerProfileTools(server);
 registerCheckinTools(server);
 registerTrainingTools(server);
 registerNutritionTools(server);
+registerProgressTools(server);
 
 /**
  * Único tool de Sprint 0: valida que el transporte MCP funciona de punta a

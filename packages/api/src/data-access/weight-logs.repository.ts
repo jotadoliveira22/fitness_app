@@ -64,3 +64,20 @@ export async function getLatestWeightLog(
   if (error) throw new DataAccessError("No se pudo obtener el último peso", error);
   return data ? toRecord(data) : null;
 }
+
+export async function listWeightLogsSince(
+  client: SupabaseClient,
+  userId: string,
+  sinceDate: string,
+): Promise<WeightLogRecord[]> {
+  const { data, error } = await client
+    .from("weight_logs")
+    .select(COLUMNS)
+    .eq("user_id", userId)
+    .gte("measured_at", sinceDate)
+    .is("deleted_at", null)
+    .order("measured_at", { ascending: true });
+
+  if (error) throw new DataAccessError("No se pudo obtener el historial de peso", error);
+  return (data as WeightLogRow[]).map(toRecord);
+}

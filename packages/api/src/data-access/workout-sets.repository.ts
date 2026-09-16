@@ -120,3 +120,62 @@ export async function getLastPerformanceForExercise(
 
   return getSetsForWorkoutExercise(client, workoutExerciseId);
 }
+
+export interface MaxWeightEntry {
+  exerciseId: string;
+  maxWeightKg: number;
+  reps: number | null;
+}
+
+/**
+ * "Récord personal" por ejercicio = peso máximo levantado en un set
+ * completado, calculado al vuelo (no hay tabla personal_records: ningún
+ * tool del SPEC la alimenta). Se hace en 3 consultas simples en vez de un
+ * embed anidado de 3 niveles, para no depender de sintaxis de PostgREST que
+ * no se pudo verificar contra una red real desde este entorno.
+ */
+export async function getMaxWeightPerExercise(
+  client: SupabaseClient,
+  userId: string,
+): Promise<MaxWeightEntry[]> {
+  const { data: sessions, error: sessionsError } = await client
+    .from("workout_sessions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "completed");
+  if (sessionsError) throw new DataAccessError("No se pudieron obtener las sesiones completadas", sessionsError);
+
+  const sessionIds = (sessions as Array<{ id: string }>).map((row) => row.id);
+  if (sessionIds.length === 0) return [];
+
+  const { data: exercises, error: exercisesError } = await client
+    .from("workout_exercises")
+    .select("id, exercise_id")
+    .in("session_id", sessionIds);
+  if (exercisesError) throw new DataAccessError("No se pudieron obtener los ejercicios completados", exercisesError);
+
+  const exerciseRows = exercises as Array<{ id: string; exercise_id: string }>;
+  if (exerciseRows.length === 0) return [];
+
+  const exerciseIdByWorkoutExerciseId = new Map(exerciseRows.map((row) => [row.id, row.exercise_id]));
+  const workoutExerciseIds = exerciseRows.map((row) => row.id);
+
+  const { data: sets, error: setsError } = await client
+    .from("workout_sets")
+    .select("workout_exercise_id, weight_kg, reps")
+    .in("workout_exercise_id", workoutExerciseIds)
+    .not("weight_kg", "is", null);
+  if (setsError) throw new DataAccessError("No se pudieron obtener los sets con peso", setsError);
+
+  const best = new Map<string, MaxWeightEntry>();
+  for (const row of sets as Array<{ workout_exercise_id: string; weight_kg: number; reps: number | null }>) {
+    const exerciseId = exerciseIdByWorkoutExerciseId.get(row.workout_exercise_id);
+    if (!exerciseId) continue;
+    const current = best.get(exerciseId);
+    if (!current || row.weight_kg > current.maxWeightKg) {
+      best.set(exerciseId, { exerciseId, maxWeightKg: row.weight_kg, reps: row.reps });
+    }
+  }
+
+  return Array.from(best.values());
+}
