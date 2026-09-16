@@ -2,11 +2,20 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { getEnv } from "@fitness-app/api";
 import { logger } from "./logger.js";
+import { registerOnboardingTools } from "./tools/onboarding.js";
+import { registerTodayTools } from "./tools/today.js";
+import { registerProfileTools } from "./tools/profile.js";
+import { registerCheckinTools } from "./tools/checkin.js";
 
 const server = new McpServer({
   name: "fitness-app-mcp-server",
   version: "0.1.0",
 });
+
+registerOnboardingTools(server);
+registerTodayTools(server);
+registerProfileTools(server);
+registerCheckinTools(server);
 
 /**
  * Único tool de Sprint 0: valida que el transporte MCP funciona de punta a

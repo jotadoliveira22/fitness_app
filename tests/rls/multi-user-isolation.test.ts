@@ -1,60 +1,18 @@
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { createUserScopedClient, getServiceRoleClient } from "@fitness-app/api";
+import {
+  createSignedInTestUser,
+  deleteTestUser,
+  hasSupabaseConfig,
+  type TestUser,
+} from "../support/supabase-test-user.js";
 
 /**
  * Criterio de salida de Sprint 0: "Usuario A no puede leer datos de Usuario B".
  *
- * Requiere un proyecto Supabase real con la migración
- * supabase/migrations/20250916000000_foundation.sql aplicada. Se omite
+ * Requiere un proyecto Supabase real con las migraciones aplicadas. Se omite
  * automáticamente (no se reporta como pasado) si SUPABASE_URL,
  * SUPABASE_ANON_KEY o SUPABASE_SERVICE_ROLE_KEY no están configuradas.
  */
-const hasSupabaseConfig = Boolean(
-  process.env["SUPABASE_URL"] &&
-    process.env["SUPABASE_ANON_KEY"] &&
-    process.env["SUPABASE_SERVICE_ROLE_KEY"],
-);
-
-interface TestUser {
-  id: string;
-  email: string;
-  password: string;
-  client: SupabaseClient;
-}
-
-async function createSignedInTestUser(): Promise<TestUser> {
-  const admin = getServiceRoleClient();
-  const email = `rls-test-${randomUUID()}@example.com`;
-  const password = randomUUID();
-
-  const { data: created, error: createError } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-  });
-  if (createError || !created.user) {
-    throw new Error(`No se pudo crear usuario de prueba: ${createError?.message}`);
-  }
-
-  const anon = createClient(process.env["SUPABASE_URL"]!, process.env["SUPABASE_ANON_KEY"]!);
-  const { data: signedIn, error: signInError } = await anon.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (signInError || !signedIn.session) {
-    throw new Error(`No se pudo autenticar usuario de prueba: ${signInError?.message}`);
-  }
-
-  return {
-    id: created.user.id,
-    email,
-    password,
-    client: createUserScopedClient(signedIn.session.access_token),
-  };
-}
-
 describe.runIf(hasSupabaseConfig)("aislamiento multiusuario (RLS)", () => {
   let userA: TestUser;
   let userB: TestUser;
@@ -76,9 +34,8 @@ describe.runIf(hasSupabaseConfig)("aislamiento multiusuario (RLS)", () => {
   });
 
   afterAll(async () => {
-    const admin = getServiceRoleClient();
-    if (userA) await admin.auth.admin.deleteUser(userA.id);
-    if (userB) await admin.auth.admin.deleteUser(userB.id);
+    if (userA) await deleteTestUser(userA.id);
+    if (userB) await deleteTestUser(userB.id);
   });
 
   it("el usuario B no puede leer el perfil del usuario A", async () => {
