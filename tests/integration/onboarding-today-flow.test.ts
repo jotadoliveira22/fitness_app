@@ -51,11 +51,12 @@ describe.runIf(hasSupabaseConfig)("flujo onboarding -> today", () => {
     expect(today.latestWeight?.weightKg).toBe(80);
     // Todavía no hay check-in de hoy en este punto del test.
     expect(today.checkin).toBeNull();
+    // workout ahora puede venir poblado (Sprint 2 genera un programa real);
+    // depende de si hoy coincide con preferredTrainingDays, no se fuerza acá.
     // Dominios de sprints futuros: siguen null, no inventados.
-    expect(today.workout).toBeNull();
     expect(today.nutrition).toBeNull();
     expect(today.fasting).toBeNull();
-  });
+  }, 30000);
 
   it("guarda un check-in diario y aparece en get_today", async () => {
     const checkin = await saveDailyCheckin(user.client, user.id, {

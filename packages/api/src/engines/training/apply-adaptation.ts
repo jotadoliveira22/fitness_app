@@ -35,7 +35,7 @@ export async function applyAdaptation(client: SupabaseClient, userId: string, wo
     throw new DataAccessError("La adaptación pendiente tiene un formato inválido");
   }
 
-  const newExercises = await replaceAllForSession(
+  await replaceAllForSession(
     client,
     workoutId,
     candidate.exercises.map((entry, index) => ({
@@ -51,5 +51,9 @@ export async function applyAdaptation(client: SupabaseClient, userId: string, wo
     adaptationReason: candidate.reason,
   });
 
-  return { session: updatedSession, exercises: newExercises };
+  // Se vuelve a consultar con el catálogo unido (insert crudo no trae el
+  // detalle del ejercicio) para que la respuesta sea útil de verdad.
+  const exercises = await getForSession(client, workoutId);
+
+  return { session: updatedSession, exercises };
 }
