@@ -53,8 +53,12 @@ describe.runIf(hasSupabaseConfig)("flujo onboarding -> today", () => {
     expect(today.checkin).toBeNull();
     // workout ahora puede venir poblado (Sprint 2 genera un programa real);
     // depende de si hoy coincide con preferredTrainingDays, no se fuerza acá.
-    // Dominios de sprints futuros: siguen null, no inventados.
-    expect(today.nutrition).toBeNull();
+    // nutrition (Sprint 3) siempre es un objeto; sin plan activo, sus campos
+    // vienen en null/cero — no se inventa un plan ni un consumo.
+    expect(today.nutrition.activePlan).toBeNull();
+    expect(today.nutrition.targets).toBeNull();
+    expect(today.nutrition.consumedToday.calories).toBe(0);
+    // fasting (Sprint 4) sigue null, no inventado.
     expect(today.fasting).toBeNull();
   }, 30000);
 
