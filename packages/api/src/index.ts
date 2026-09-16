@@ -63,3 +63,32 @@ export { applyAdaptation, NoPendingAdaptationError } from "./engines/training/ap
 export { assembleRunWorkout, type RunWorkoutResult } from "./engines/training/run-workout.js";
 export { completeWorkout } from "./engines/training/complete-workout.js";
 export { listAlternatives, replaceExercise } from "./engines/training/exercise-alternatives.js";
+
+// Nutrition Engine
+export { listAllFoods, getFoodById, type FoodRecord } from "./data-access/foods.repository.js";
+export {
+  getPlanById,
+  getActivePlan,
+  listPlans,
+  type NutritionPlanRecord,
+} from "./data-access/nutrition-plans.repository.js";
+export {
+  getLatestVersionContent,
+  type NutritionVersionContent,
+  type NutritionMealRecord,
+  type NutritionItemRecord,
+} from "./data-access/nutrition-plan-content.repository.js";
+export { getActiveTargets, type NutrientTargetsRecord } from "./data-access/nutrient-targets.repository.js";
+export { getLogsForDate, type FoodLogRecord } from "./data-access/food-logs.repository.js";
+
+export { importNutritionistPlan, type ImportPlanResult } from "./engines/nutrition/import-plan.js";
+export { generateAiNutritionPlan, type GeneratedPlanResult } from "./engines/nutrition/generate-ai-plan.js";
+export {
+  setActivePlan,
+  RequiresConfirmationError,
+  type SetActivePlanResult,
+} from "./engines/nutrition/set-active-plan.js";
+export { getManageNutrition, type ManageNutritionResult } from "./engines/nutrition/manage-nutrition.js";
+export { logMeal, type LogMealResult } from "./engines/nutrition/log-meal.js";
+export { saveMeal } from "./engines/nutrition/save-meal.js";
+export type { MealCandidateItem } from "./engines/nutrition/foods-matcher.js";

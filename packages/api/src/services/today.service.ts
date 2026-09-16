@@ -5,7 +5,10 @@ import { getCheckinByDate, type DailyCheckinRecord } from "../data-access/daily-
 import { getLatestWeightLog, type WeightLogRecord } from "../data-access/weight-logs.repository.js";
 import { getSessionForDate } from "../data-access/workout-sessions.repository.js";
 import { getForSession } from "../data-access/workout-exercises.repository.js";
-import type { SessionStatus, TrainingContext } from "@fitness-app/shared";
+import { getActivePlan } from "../data-access/nutrition-plans.repository.js";
+import { getActiveTargets } from "../data-access/nutrient-targets.repository.js";
+import { getLogsForDate } from "../data-access/food-logs.repository.js";
+import type { NutritionPlanSource, SessionStatus, TrainingContext } from "@fitness-app/shared";
 
 export interface TodayInsight {
   text: string;
@@ -20,6 +23,12 @@ export interface TodayWorkoutSummary {
   exerciseCount: number;
 }
 
+export interface TodayNutritionSummary {
+  activePlan: { id: string; source: NutritionPlanSource; name: string } | null;
+  targets: { dailyCalories: number | null; proteinG: number | null; carbsG: number | null; fatG: number | null } | null;
+  consumedToday: { calories: number; proteinG: number; carbsG: number; fatG: number };
+}
+
 export interface TodayResult {
   date: string;
   onboardingCompleted: boolean;
@@ -28,8 +37,7 @@ export interface TodayResult {
   checkin: DailyCheckinRecord | null;
   latestWeight: WeightLogRecord | null;
   workout: TodayWorkoutSummary | null;
-  /** Sprint 3 (Nutrition Engine) lo completa. */
-  nutrition: null;
+  nutrition: TodayNutritionSummary;
   /** Sprint 4 (Fasting) lo completa. */
   fasting: null;
   insight: TodayInsight;
@@ -85,12 +93,15 @@ export async function getToday(
 ): Promise<TodayResult> {
   const targetDate = date ?? todayIso();
 
-  const [profile, activeGoals, checkin, latestWeight, session] = await Promise.all([
+  const [profile, activeGoals, checkin, latestWeight, session, activePlan, targets, foodLogs] = await Promise.all([
     getOwnProfile(userClient, userId),
     listActiveGoals(userClient, userId),
     getCheckinByDate(userClient, userId, targetDate),
     getLatestWeightLog(userClient, userId),
     getSessionForDate(userClient, userId, targetDate),
+    getActivePlan(userClient, userId),
+    getActiveTargets(userClient, userId),
+    getLogsForDate(userClient, userId, targetDate),
   ]);
 
   const onboardingCompleted = profile?.onboardingCompletedAt != null;
@@ -107,6 +118,31 @@ export async function getToday(
     };
   }
 
+  const consumedToday = foodLogs
+    .flatMap((log) => log.items)
+    .reduce(
+      (acc, item) => ({
+        calories: acc.calories + item.calories,
+        proteinG: acc.proteinG + item.proteinG,
+        carbsG: acc.carbsG + item.carbsG,
+        fatG: acc.fatG + item.fatG,
+      }),
+      { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 },
+    );
+
+  const nutrition: TodayNutritionSummary = {
+    activePlan: activePlan ? { id: activePlan.id, source: activePlan.source, name: activePlan.name } : null,
+    targets: targets
+      ? {
+          dailyCalories: targets.dailyCalories,
+          proteinG: targets.proteinG,
+          carbsG: targets.carbsG,
+          fatG: targets.fatG,
+        }
+      : null,
+    consumedToday,
+  };
+
   return {
     date: targetDate,
     onboardingCompleted,
@@ -115,7 +151,7 @@ export async function getToday(
     checkin,
     latestWeight,
     workout,
-    nutrition: null,
+    nutrition,
     fasting: null,
     insight: buildInsight(onboardingCompleted, checkin, workout),
   };
