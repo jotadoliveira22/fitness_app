@@ -2,9 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    // El SDK de MCP no es compatible con exactOptionalPropertyTypes en varios
+    // puntos de su superficie pública (p. ej. sessionIdGenerator: undefined
+    // para modo stateless es la forma documentada de usarlo).
+    "exactOptionalPropertyTypes": false
   },
-  "include": ["src"]
+  "include": ["src", "api"]
 }
