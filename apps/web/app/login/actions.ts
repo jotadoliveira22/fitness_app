@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { completeSignup } from "@/lib/complete-signup";
 
 export interface AuthActionState {
   error: string | null;
@@ -52,7 +53,7 @@ export async function signUp(_prev: AuthActionState, formData: FormData): Promis
   const supabase = await createClient();
   const siteUrl = await getSiteUrl();
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -63,6 +64,13 @@ export async function signUp(_prev: AuthActionState, formData: FormData): Promis
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Si la confirmación de email está desactivada en el proyecto, signUp ya
+  // devuelve sesión activa acá mismo, sin pasar por /auth/confirm.
+  if (data.session && data.user) {
+    await completeSignup(supabase, data.user, siteUrl);
+    redirect("/home");
   }
 
   return { error: null, success: true };
