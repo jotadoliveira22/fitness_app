@@ -99,6 +99,8 @@ export { type BodyMeasurementRecord } from "./data-access/body-measurements.repo
 export {
   getPhotoById,
   deletePhoto,
+  listPhotosSince,
+  getSignedPhotoUrl,
   type ProgressPhotoRecord,
 } from "./data-access/progress-photos.repository.js";
 export {
