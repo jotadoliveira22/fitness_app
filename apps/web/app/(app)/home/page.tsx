@@ -1,7 +1,10 @@
+import Link from "next/link";
+import Image from "next/image";
 import { getToday } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
-import { StatTile } from "@/components/StatTile";
+import { IconStat } from "@/components/IconStat";
 import { ProgressRing } from "@/components/ProgressRing";
+import { getWorkoutPhoto } from "@/lib/stock-photos";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -20,9 +23,14 @@ export default async function HomePage() {
   return (
     <div className="px-5 pt-8">
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted">Hola,</p>
-          <h1 className="font-display text-2xl font-extrabold">{firstName} 👋</h1>
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised">
+            <Image src="/brand/sumiva-isotype.png" alt="" width={22} height={22} />
+          </div>
+          <div>
+            <p className="text-xs text-muted">Hola,</p>
+            <h1 className="font-display text-lg font-extrabold leading-tight">{firstName} 👋</h1>
+          </div>
         </div>
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-lg">🔔</div>
       </div>
@@ -39,35 +47,40 @@ export default async function HomePage() {
         </div>
       )}
 
-      <div className="card mb-6 flex items-center gap-5">
+      <p className="mb-3 text-sm font-semibold">Tu progreso hoy</p>
+      <div className="card mb-6 flex items-center gap-4">
         <ProgressRing percent={calorieProgress} />
-        <div>
-          <p className="text-xs text-muted">Calorías de hoy</p>
-          <p className="text-xl font-bold">
-            {Math.round(today.nutrition.consumedToday.calories)}
-            {calorieTarget && <span className="text-sm font-normal text-muted"> / {calorieTarget} kcal</span>}
-          </p>
-          <p className="mt-1 text-xs text-muted">{today.insight.text}</p>
+        <div className="flex flex-1 gap-2">
+          <IconStat icon="🔥" value={Math.round(today.nutrition.consumedToday.calories)} label="kcal" />
+          <IconStat icon="💪" value={Math.round(today.nutrition.consumedToday.proteinG)} label="prot. g" />
+          <IconStat icon="🏋️" value={today.workout?.exerciseCount ?? 0} label="ejercicios" />
         </div>
       </div>
+      <p className="-mt-4 mb-6 text-xs text-muted">{today.insight.text}</p>
 
-      <div className="mb-6 flex gap-3">
-        <StatTile label="Proteína" value={Math.round(today.nutrition.consumedToday.proteinG)} unit="g" />
-        <StatTile label="Carbs" value={Math.round(today.nutrition.consumedToday.carbsG)} unit="g" />
-        <StatTile label="Grasas" value={Math.round(today.nutrition.consumedToday.fatG)} unit="g" />
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold">Entrenamiento de hoy</p>
+        <Link href="/workouts" className="text-xs font-semibold text-accent">
+          Ver todo
+        </Link>
       </div>
-
-      <p className="mb-3 text-sm font-semibold">Entrenamiento de hoy</p>
       {today.workout ? (
-        <div className="card mb-6 flex items-center justify-between">
-          <div>
-            <p className="font-semibold">{today.workout.objective ?? "Entrenamiento"}</p>
-            <p className="text-xs text-muted">{today.workout.exerciseCount} ejercicios</p>
+        <Link href="/workouts" className="card mb-6 flex items-center gap-3 overflow-hidden">
+          <img
+            src={getWorkoutPhoto(today.workout.trainingContext)}
+            alt=""
+            className="h-16 w-16 flex-shrink-0 rounded-xl object-cover"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold">{today.workout.objective ?? "Entrenamiento"}</p>
+            <p className="text-xs text-muted">
+              {today.workout.exerciseCount} ejercicios · {today.workout.trainingContext}
+            </p>
           </div>
-          <span className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-black">
-            {today.workout.status === "completed" ? "Hecho ✓" : "Empezar"}
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent text-black">
+            {today.workout.status === "completed" ? "✓" : "▶"}
           </span>
-        </div>
+        </Link>
       ) : (
         <div className="card mb-6 text-sm text-muted">No hay entrenamiento planeado para hoy.</div>
       )}

@@ -27,7 +27,17 @@ function LoginForm() {
   const pending = mode === "login" ? signInPending : signUpPending;
 
   return (
-    <div className="flex min-h-screen flex-col justify-center px-6 py-12">
+    <div className="flex min-h-screen flex-col">
+      <div className="relative h-64 w-full flex-shrink-0">
+        <img
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=600&fit=crop&q=80"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-bg/10" />
+      </div>
+
+      <div className="-mt-16 flex flex-1 flex-col justify-center px-6 pb-12">
       <div className="mb-10">
         <Image src="/brand/sumiva-isotype.png" alt="Sumiva" width={48} height={48} className="mb-6" />
         <h1 className="font-display text-3xl font-extrabold uppercase leading-tight">
@@ -108,6 +118,7 @@ function LoginForm() {
           </>
         )}
       </button>
+      </div>
     </div>
   );
 }
