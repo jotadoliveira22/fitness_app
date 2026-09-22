@@ -29,11 +29,7 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="relative h-64 w-full flex-shrink-0">
-        <img
-          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=600&fit=crop&q=80"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        <img src="/brand/onboarding/gym.webp" alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-bg/10" />
       </div>
 

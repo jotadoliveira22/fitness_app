@@ -2,15 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const SLIDES = [
   {
-    photo: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=1000&fit=crop&q=80",
+    photo: "/brand/onboarding/gym.webp",
     title: (
       <>
-        Todo suma a<br />
-        <span className="text-accent">tu bienestar</span>
+        Tu mejor
+        <br />
+        versión <span className="text-accent">suma hoy</span>
       </>
     ),
     body: "Salud, entrenamiento y nutrición en un solo lugar, para una mejor versión de vos.",
@@ -21,7 +22,7 @@ const SLIDES = [
     ],
   },
   {
-    photo: "https://images.unsplash.com/photo-1571731956672-f2b94d7dd0cb?w=800&h=1000&fit=crop&q=80",
+    photo: "/brand/onboarding/running.webp",
     title: (
       <>
         Entrenamientos
@@ -37,7 +38,7 @@ const SLIDES = [
     ],
   },
   {
-    photo: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800&h=1000&fit=crop&q=80",
+    photo: "/brand/onboarding/nutrition.webp",
     title: (
       <>
         Nutrición y
@@ -54,15 +55,43 @@ const SLIDES = [
   },
 ];
 
+const SWIPE_THRESHOLD = 40;
+
 export function OnboardingCarousel() {
   const [index, setIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const slide = SLIDES[index]!;
   const isLast = index === SLIDES.length - 1;
 
+  function goTo(next: number) {
+    setIndex(Math.max(0, Math.min(SLIDES.length - 1, next)));
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0]!.clientX;
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current == null) return;
+    const delta = e.changedTouches[0]!.clientX - touchStartX.current;
+    if (delta > SWIPE_THRESHOLD) goTo(index - 1);
+    else if (delta < -SWIPE_THRESHOLD) goTo(index + 1);
+    touchStartX.current = null;
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="relative h-[55vh] w-full flex-shrink-0">
-        <img src={slide.photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
+    <div className="flex min-h-screen flex-col" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className="relative h-[55vh] w-full flex-shrink-0 overflow-hidden">
+        {SLIDES.map((s, i) => (
+          <img
+            key={s.photo}
+            src={s.photo}
+            alt=""
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+              i === index ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/20 to-black/40" />
 
         <div className="relative flex items-start justify-between p-6">
@@ -92,7 +121,7 @@ export function OnboardingCarousel() {
               Comenzar →
             </Link>
           ) : (
-            <button type="button" onClick={() => setIndex(index + 1)} className="btn-primary w-full">
+            <button type="button" onClick={() => goTo(index + 1)} className="btn-primary w-full">
               Comenzar →
             </button>
           )}
@@ -102,7 +131,7 @@ export function OnboardingCarousel() {
               <button
                 key={i}
                 type="button"
-                onClick={() => setIndex(i)}
+                onClick={() => goTo(i)}
                 aria-label={`Ir a la pantalla ${i + 1}`}
                 className={`h-2 rounded-full transition-all ${i === index ? "w-6 bg-accent" : "w-2 bg-surface-raised"}`}
               />
