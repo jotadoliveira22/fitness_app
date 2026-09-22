@@ -3,54 +3,55 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { DumbbellIcon, LeafIcon, TrendingUpIcon, CalendarIcon, FlameIcon, CheckCircleIcon, MealIcon, ScaleIcon, CameraIcon } from "./icons";
 
 const SLIDES = [
   {
     photo: "/brand/onboarding/gym.webp",
     title: (
       <>
-        Tu mejor
+        TU MEJOR
         <br />
-        versión <span className="text-accent">suma hoy</span>
+        VERSIÓN <span className="text-accent">SUMA HOY</span>
       </>
     ),
     body: "Salud, entrenamiento y nutrición en un solo lugar, para una mejor versión de vos.",
     features: [
-      { icon: "🏋️", label: "Entrena mejor" },
-      { icon: "🥗", label: "Aliméntate mejor" },
-      { icon: "📈", label: "Progresá de verdad" },
+      { Icon: DumbbellIcon, label: "Entrena mejor" },
+      { Icon: LeafIcon, label: "Aliméntate mejor" },
+      { Icon: TrendingUpIcon, label: "Progresá de verdad" },
     ],
   },
   {
     photo: "/brand/onboarding/running.webp",
     title: (
       <>
-        Entrenamientos
+        ENTRENAMIENTOS
         <br />
-        <span className="text-accent">a tu medida</span>
+        <span className="text-accent">A TU MEDIDA</span>
       </>
     ),
     body: "Rutinas armadas según tu nivel y tu contexto (gym, casa, aire libre), con seguimiento de cada sesión y tu semana completa.",
     features: [
-      { icon: "📅", label: "Calendario semanal" },
-      { icon: "🔥", label: "Rachas y constancia" },
-      { icon: "✅", label: "Historial real" },
+      { Icon: CalendarIcon, label: "Calendario semanal" },
+      { Icon: FlameIcon, label: "Rachas y constancia" },
+      { Icon: CheckCircleIcon, label: "Historial real" },
     ],
   },
   {
     photo: "/brand/onboarding/nutrition.webp",
     title: (
       <>
-        Nutrición y
+        NUTRICIÓN Y
         <br />
-        <span className="text-accent">progreso reales</span>
+        <span className="text-accent">PROGRESO REALES</span>
       </>
     ),
     body: "Registrá tus comidas y seguí tus macros contra tus objetivos. Medí tu evolución con peso, medidas y fotos — sin números inventados.",
     features: [
-      { icon: "🍽️", label: "Registro de comidas" },
-      { icon: "⚖️", label: "Peso en el tiempo" },
-      { icon: "📸", label: "Fotos de progreso" },
+      { Icon: MealIcon, label: "Registro de comidas" },
+      { Icon: ScaleIcon, label: "Peso en el tiempo" },
+      { Icon: CameraIcon, label: "Fotos de progreso" },
     ],
   },
 ];
@@ -80,8 +81,8 @@ export function OnboardingCarousel() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      <div className="relative h-[55vh] w-full flex-shrink-0 overflow-hidden">
+    <div className="flex min-h-[100dvh] flex-col" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className="relative h-[48dvh] w-full flex-shrink-0 overflow-hidden">
         {SLIDES.map((s, i) => (
           <img
             key={s.photo}
@@ -92,30 +93,32 @@ export function OnboardingCarousel() {
             }`}
           />
         ))}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/20 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/10 to-black/50" />
 
         <div className="relative flex items-start justify-between p-6">
-          <Image src="/brand/sumiva-logo.png" alt="Sumiva" width={110} height={28} />
-          <Link href="/login" className="rounded-full bg-black/40 px-4 py-2 text-xs font-semibold text-white backdrop-blur">
+          <Image src="/brand/sumiva-logo.png" alt="Sumiva" width={150} height={38} priority className="drop-shadow-lg" />
+          <Link href="/login" className="rounded-full bg-black/50 px-4 py-2 text-xs font-semibold text-white backdrop-blur">
             Saltar
           </Link>
         </div>
       </div>
 
-      <div className="-mt-10 flex flex-1 flex-col px-6 pb-10">
-        <h1 className="font-display text-3xl font-extrabold leading-tight">{slide.title}</h1>
+      <div className="flex flex-1 flex-col px-6 pb-8 pt-5">
+        <h1 className="font-display text-[2rem] font-extrabold uppercase leading-[1.05] tracking-tight">{slide.title}</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">{slide.body}</p>
 
         <div className="mt-6 flex justify-between gap-2">
-          {slide.features.map((f) => (
-            <div key={f.label} className="flex flex-1 flex-col items-center gap-2 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-xl">{f.icon}</div>
-              <span className="text-[11px] leading-tight text-muted">{f.label}</span>
+          {slide.features.map(({ Icon, label }) => (
+            <div key={label} className="flex flex-1 flex-col items-center gap-2 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15">
+                <Icon className="h-5 w-5 text-accent" />
+              </div>
+              <span className="text-[11px] leading-tight text-muted">{label}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-auto pt-8">
+        <div className="mt-auto pt-6">
           {isLast ? (
             <Link href="/login?mode=signup" className="btn-primary block w-full text-center">
               Comenzar →
@@ -126,7 +129,7 @@ export function OnboardingCarousel() {
             </button>
           )}
 
-          <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-5 flex justify-center gap-2">
             {SLIDES.map((_, i) => (
               <button
                 key={i}
