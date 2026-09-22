@@ -85,11 +85,9 @@ export default async function WorkoutsPage() {
       <h1 className="mb-1 font-display text-2xl font-extrabold">Entrenamiento</h1>
       <p className="mb-5 text-xs text-muted">Disciplina hoy, resultados mañana.</p>
 
-      <WorkoutTabs>
-        {(tab) => (
+      <WorkoutTabs
+        plan={
           <>
-            {tab === "Plan" && (
-              <>
                 {today.workout ? (
                   <div className="relative mb-5 overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/15 via-surface to-surface p-5">
                     <div className="relative z-10 max-w-[62%]">
@@ -229,70 +227,63 @@ export default async function WorkoutsPage() {
                     </div>
                   </>
                 )}
-              </>
-            )}
-
-            {tab === "Ejercicios" && (
-              <div className="space-y-2">
-                {catalog.map((ex) => (
-                  <div key={ex.id} className="card flex items-center gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent/15">
-                      <DumbbellIcon className="h-4 w-4 text-accent" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{ex.name}</p>
-                      <p className="text-xs text-muted">
-                        {MUSCLE_GROUP_LABELS[ex.primaryMuscleGroup]} · {ex.difficulty}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tab === "Mis rutinas" && (
-              <>
-                {activeProgram && plan ? (
-                  <div className="card flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">{activeProgram.name}</p>
-                      <p className="text-xs text-muted">
-                        {activeProgram.durationWeeks} semanas · Semana {plan.week} de {activeProgram.durationWeeks}
-                      </p>
-                    </div>
-                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
-                      {plan.percent}%
-                    </div>
-                  </div>
-                ) : (
-                  <div className="card text-sm text-muted">Todavía no tienes un plan de entrenamiento activo.</div>
-                )}
-              </>
-            )}
-
-            {tab === "Explorar" && (
-              <div className="space-y-2">
-                <p className="mb-2 text-xs text-muted">Catálogo completo de ejercicios disponibles.</p>
-                {catalog.map((ex) => (
-                  <div key={ex.id} className="card">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">{ex.name}</p>
-                      <span className="text-[10px] text-muted">{ex.difficulty}</span>
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {ex.modalities.map((m) => (
-                        <span key={m} className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-muted">
-                          {TRAINING_CONTEXT_LABELS[m]}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </>
-        )}
-      </WorkoutTabs>
+        }
+        ejercicios={
+          <div className="space-y-2">
+            {catalog.map((ex) => (
+              <div key={ex.id} className="card flex items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                  <DumbbellIcon className="h-4 w-4 text-accent" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{ex.name}</p>
+                  <p className="text-xs text-muted">
+                    {MUSCLE_GROUP_LABELS[ex.primaryMuscleGroup]} · {ex.difficulty}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+        misRutinas={
+          activeProgram && plan ? (
+            <div className="card flex items-center justify-between">
+              <div>
+                <p className="font-semibold">{activeProgram.name}</p>
+                <p className="text-xs text-muted">
+                  {activeProgram.durationWeeks} semanas · Semana {plan.week} de {activeProgram.durationWeeks}
+                </p>
+              </div>
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
+                {plan.percent}%
+              </div>
+            </div>
+          ) : (
+            <div className="card text-sm text-muted">Todavía no tienes un plan de entrenamiento activo.</div>
+          )
+        }
+        explorar={
+          <div className="space-y-2">
+            <p className="mb-2 text-xs text-muted">Catálogo completo de ejercicios disponibles.</p>
+            {catalog.map((ex) => (
+              <div key={ex.id} className="card">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">{ex.name}</p>
+                  <span className="text-[10px] text-muted">{ex.difficulty}</span>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {ex.modalities.map((m) => (
+                    <span key={m} className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-muted">
+                      {TRAINING_CONTEXT_LABELS[m]}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      />
     </div>
   );
 }

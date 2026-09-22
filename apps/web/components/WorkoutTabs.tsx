@@ -5,8 +5,27 @@ import { useState } from "react";
 const TABS = ["Plan", "Ejercicios", "Mis rutinas", "Explorar"] as const;
 export type WorkoutTab = (typeof TABS)[number];
 
-export function WorkoutTabs({ children }: { children: (tab: WorkoutTab) => React.ReactNode }) {
+interface WorkoutTabsProps {
+  plan: React.ReactNode;
+  ejercicios: React.ReactNode;
+  misRutinas: React.ReactNode;
+  explorar: React.ReactNode;
+}
+
+/**
+ * Recibe cada pestaña ya renderizada (React elements, serializables) en vez
+ * de una función children — pasar funciones de un Server Component a un
+ * Client Component no funciona en producción (rompe la serialización RSC,
+ * aunque el build local no lo detecta).
+ */
+export function WorkoutTabs({ plan, ejercicios, misRutinas, explorar }: WorkoutTabsProps) {
   const [tab, setTab] = useState<WorkoutTab>("Plan");
+  const content: Record<WorkoutTab, React.ReactNode> = {
+    Plan: plan,
+    Ejercicios: ejercicios,
+    "Mis rutinas": misRutinas,
+    Explorar: explorar,
+  };
 
   return (
     <>
@@ -24,7 +43,7 @@ export function WorkoutTabs({ children }: { children: (tab: WorkoutTab) => React
           </button>
         ))}
       </div>
-      {children(tab)}
+      {content[tab]}
     </>
   );
 }
