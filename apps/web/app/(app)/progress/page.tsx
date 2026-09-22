@@ -13,7 +13,7 @@ export default async function ProgressPage() {
 
   return (
     <div className="px-5 pt-8">
-      <h1 className="mb-6 text-2xl font-bold">Progreso</h1>
+      <h1 className="mb-6 font-display text-2xl font-extrabold">Progreso</h1>
 
       <div className="mb-6 flex gap-3">
         <StatTile

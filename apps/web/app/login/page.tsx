@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useState } from "react";
 import { signIn, signUp, type AuthActionState } from "./actions";
 
@@ -17,24 +18,24 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col justify-center px-6 py-12">
       <div className="mb-10">
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-2xl">💪</div>
-        <h1 className="text-3xl font-bold leading-tight">
+        <Image src="/brand/sumiva-isotype.png" alt="Sumiva" width={48} height={48} className="mb-6" />
+        <h1 className="font-display text-3xl font-extrabold uppercase leading-tight">
           {mode === "login" ? (
             <>
-              Bienvenido
+              Tu mejor
               <br />
-              de vuelta
+              versión <span className="text-accent">suma hoy</span>
             </>
           ) : (
             <>
               Empecemos
               <br />
-              tu camino
+              <span className="text-accent">tu camino</span>
             </>
           )}
         </h1>
         <p className="mt-2 text-sm text-muted">
-          {mode === "login" ? "Ingresá para seguir tu progreso." : "Creá tu cuenta para arrancar."}
+          {mode === "login" ? "Hábitos reales. Resultados de verdad." : "Creá tu cuenta para arrancar."}
         </p>
       </div>
 
@@ -56,7 +57,7 @@ export default function LoginPage() {
         )}
 
         <button type="submit" disabled={pending} className="btn-primary w-full disabled:opacity-60">
-          {pending ? "Un momento..." : mode === "login" ? "Ingresar" : "Crear cuenta"}
+          {pending ? "Un momento..." : mode === "login" ? "Ingresar" : "Comenzar →"}
         </button>
       </form>
 

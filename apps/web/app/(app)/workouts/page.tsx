@@ -12,7 +12,7 @@ export default async function WorkoutsPage() {
 
   return (
     <div className="px-5 pt-8">
-      <h1 className="mb-6 text-2xl font-bold">Entrenamientos</h1>
+      <h1 className="mb-6 font-display text-2xl font-extrabold">Entrenamientos</h1>
 
       {today.workout ? (
         <div className="card mb-4">

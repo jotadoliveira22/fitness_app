@@ -22,9 +22,14 @@ export default async function HomePage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-sm text-muted">Hola,</p>
-          <h1 className="text-2xl font-bold">{firstName} 👋</h1>
+          <h1 className="font-display text-2xl font-extrabold">{firstName} 👋</h1>
         </div>
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-lg">🔔</div>
+      </div>
+
+      <div className="card mb-6 flex items-center justify-between bg-accent">
+        <p className="font-display text-sm font-bold text-black">Todo suma a tu bienestar</p>
+        <span className="text-lg">→</span>
       </div>
 
       {!today.onboardingCompleted && (

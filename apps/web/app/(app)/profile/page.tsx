@@ -22,7 +22,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="px-5 pt-8">
-      <h1 className="mb-6 text-2xl font-bold">Perfil</h1>
+      <h1 className="mb-6 font-display text-2xl font-extrabold">Perfil</h1>
 
       <div className="card mb-6 flex items-center gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-2xl font-bold text-black">
