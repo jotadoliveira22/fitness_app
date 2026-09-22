@@ -2,6 +2,7 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { updateOwnProfile } from "@fitness-app/api";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sendWelcomeEmail } from "@/lib/email";
 
 /**
  * Vercel donde Supabase redirige tras clickear el link del email de
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
 
   const meta = data.user.user_metadata as Record<string, unknown>;
   const fullName = typeof meta.full_name === "string" ? meta.full_name : undefined;
+  const firstName = typeof meta.first_name === "string" ? meta.first_name : (fullName?.split(" ")[0] ?? "ahí");
   const dateOfBirth = typeof meta.date_of_birth === "string" ? meta.date_of_birth : undefined;
 
   if (fullName || dateOfBirth) {
@@ -40,6 +42,22 @@ export async function GET(request: NextRequest) {
       // El perfil ya existe (lo crea handle_new_user en el signup); si el
       // patch falla no bloqueamos el login, el usuario puede completarlo después.
     }
+  }
+
+  // Bienvenida automática, una sola vez por usuario: el UPDATE con
+  // .is("welcome_email_sent_at", null) actúa como lock optimista para que
+  // dos hits simultáneos de este link no disparen el email dos veces.
+  const { data: marked } = await supabase
+    .from("profiles")
+    .update({ welcome_email_sent_at: new Date().toISOString() })
+    .eq("id", data.user.id)
+    .is("welcome_email_sent_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (marked && data.user.email) {
+    const siteUrl = new URL(request.url).origin;
+    await sendWelcomeEmail(data.user.email, firstName, siteUrl);
   }
 
   return NextResponse.redirect(new URL("/home", request.url));
