@@ -6,6 +6,7 @@ const TABS = ["Plan", "Ejercicios", "Mis rutinas", "Explorar"] as const;
 export type WorkoutTab = (typeof TABS)[number];
 
 interface WorkoutTabsProps {
+  initialTab?: WorkoutTab;
   plan: React.ReactNode;
   ejercicios: React.ReactNode;
   misRutinas: React.ReactNode;
@@ -18,8 +19,8 @@ interface WorkoutTabsProps {
  * Client Component no funciona en producción (rompe la serialización RSC,
  * aunque el build local no lo detecta).
  */
-export function WorkoutTabs({ plan, ejercicios, misRutinas, explorar }: WorkoutTabsProps) {
-  const [tab, setTab] = useState<WorkoutTab>("Plan");
+export function WorkoutTabs({ initialTab = "Plan", plan, ejercicios, misRutinas, explorar }: WorkoutTabsProps) {
+  const [tab, setTab] = useState<WorkoutTab>(initialTab);
   const content: Record<WorkoutTab, React.ReactNode> = {
     Plan: plan,
     Ejercicios: ejercicios,

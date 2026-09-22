@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import {
   getToday,
@@ -8,15 +9,17 @@ import {
   listExerciseCatalog,
   listRoutines,
   listSchedule,
+  getRoutineExercises,
 } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
-import { WorkoutTabs } from "@/components/WorkoutTabs";
+import { WorkoutTabs, type WorkoutTab } from "@/components/WorkoutTabs";
 import { RoutinesManager } from "@/components/RoutinesManager";
-import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon } from "@/components/icons";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon, PlusIcon } from "@/components/icons";
 import { createRoutineAction, deleteRoutineAction, assignScheduleAction, startScheduledRoutineAction } from "./actions";
 
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -29,7 +32,16 @@ function startOfWeek(date: Date): Date {
   return d;
 }
 
-export default async function WorkoutsPage() {
+interface WorkoutsPageProps {
+  searchParams: Promise<{ tab?: string; new?: string }>;
+}
+
+export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) {
+  const sp = await searchParams;
+  const initialTab: WorkoutTab =
+    sp.tab === "rutinas" ? "Mis rutinas" : sp.tab === "ejercicios" ? "Ejercicios" : sp.tab === "explorar" ? "Explorar" : "Plan";
+  const autoOpenCreate = sp.new === "1";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -76,6 +88,11 @@ export default async function WorkoutsPage() {
     recentCompleted.map(async (s) => ({ session: s, count: (await getWorkoutExercisesForSession(supabase, s.id)).length })),
   );
 
+  const routineExerciseCountEntries = await Promise.all(
+    routines.map(async (r) => [r.id, (await getRoutineExercises(supabase, r.id)).length] as const),
+  );
+  const exerciseCounts = Object.fromEntries(routineExerciseCountEntries);
+
   return (
     <div className="px-5 pt-6 pb-4">
       <div className="mb-5 flex items-center justify-between">
@@ -97,8 +114,18 @@ export default async function WorkoutsPage() {
       <p className="mb-5 text-xs text-muted">Disciplina hoy, resultados mañana.</p>
 
       <WorkoutTabs
+        initialTab={initialTab}
         plan={
           <>
+                <div className="mb-5 flex justify-end">
+                  <Link
+                    href="/workouts?tab=rutinas&new=1"
+                    className="flex items-center gap-1.5 rounded-full bg-surface-raised px-3.5 py-2 text-xs font-semibold text-accent"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" /> Nueva rutina
+                  </Link>
+                </div>
+
                 {today.workout ? (
                   <div className="relative mb-5 overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/15 via-surface to-surface p-5">
                     <div className="relative z-10 max-w-[62%]">
@@ -162,9 +189,10 @@ export default async function WorkoutsPage() {
                     <div className="mb-5 grid grid-cols-3 gap-2">
                       {exercises.map((ex) => (
                         <div key={ex.id} className="card px-2 py-3 text-center">
-                          <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
-                            <DumbbellIcon className="h-4 w-4 text-accent" />
-                          </div>
+                          <ExerciseThumb
+                            exercise={{ modalities: ex.exercise?.modalities ?? [] }}
+                            className="mx-auto mb-2 h-11 w-11"
+                          />
                           <p className="truncate text-xs font-semibold">{ex.exercise?.name ?? "Ejercicio"}</p>
                           <p className="text-[10px] text-muted">
                             {ex.targetSets} series{ex.targetReps ? ` · ${ex.targetReps}` : ""}
@@ -259,9 +287,7 @@ export default async function WorkoutsPage() {
           <div className="space-y-2">
             {catalog.map((ex) => (
               <div key={ex.id} className="card flex items-center gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent/15">
-                  <DumbbellIcon className="h-4 w-4 text-accent" />
-                </div>
+                <ExerciseThumb exercise={ex} className="h-12 w-12" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{ex.name}</p>
                   <p className="text-xs text-muted">
@@ -289,8 +315,10 @@ export default async function WorkoutsPage() {
             )}
             <RoutinesManager
               routines={routines}
+              exerciseCounts={exerciseCounts}
               schedule={schedule}
               catalog={catalog}
+              autoOpenCreate={autoOpenCreate}
               createRoutineAction={createRoutineAction}
               deleteRoutineAction={deleteRoutineAction}
               assignScheduleAction={assignScheduleAction}
@@ -301,17 +329,20 @@ export default async function WorkoutsPage() {
           <div className="space-y-2">
             <p className="mb-2 text-xs text-muted">Catálogo completo de ejercicios disponibles.</p>
             {catalog.map((ex) => (
-              <div key={ex.id} className="card">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">{ex.name}</p>
-                  <span className="text-[10px] text-muted">{ex.difficulty}</span>
-                </div>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {ex.modalities.map((m) => (
-                    <span key={m} className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-muted">
-                      {TRAINING_CONTEXT_LABELS[m]}
-                    </span>
-                  ))}
+              <div key={ex.id} className="card flex gap-3">
+                <ExerciseThumb exercise={ex} className="h-12 w-12" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="truncate text-sm font-semibold">{ex.name}</p>
+                    <span className="flex-shrink-0 text-[10px] text-muted">{ex.difficulty}</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {ex.modalities.map((m) => (
+                      <span key={m} className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-muted">
+                        {TRAINING_CONTEXT_LABELS[m]}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
