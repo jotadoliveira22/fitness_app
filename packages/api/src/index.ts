@@ -66,6 +66,26 @@ export { assembleRunWorkout, type RunWorkoutResult } from "./engines/training/ru
 export { completeWorkout } from "./engines/training/complete-workout.js";
 export { listAlternatives, replaceExercise } from "./engines/training/exercise-alternatives.js";
 
+// Rutinas propias + calendario semanal recurrente
+export {
+  listRoutines,
+  getRoutineById,
+  getRoutineExercises,
+  insertRoutine,
+  deleteRoutine,
+  type RoutineRecord,
+  type RoutineExerciseRecord,
+  type InsertRoutineInput,
+  type InsertRoutineExerciseInput,
+} from "./data-access/routines.repository.js";
+export {
+  listSchedule,
+  assignRoutineToWeekday,
+  clearWeekday,
+  type RoutineScheduleRecord,
+} from "./data-access/routine-schedule.repository.js";
+export { materializeRoutineForDate } from "./engines/training/materialize-routine.js";
+
 // Nutrition Engine
 export { listAllFoods, getFoodById, type FoodRecord } from "./data-access/foods.repository.js";
 export {

@@ -6,6 +6,8 @@ import {
   listSessionsInRange,
   getWorkoutExercisesForSession,
   listExerciseCatalog,
+  listRoutines,
+  listSchedule,
 } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
@@ -13,7 +15,9 @@ import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
 import { WorkoutTabs } from "@/components/WorkoutTabs";
+import { RoutinesManager } from "@/components/RoutinesManager";
 import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon } from "@/components/icons";
+import { createRoutineAction, deleteRoutineAction, assignScheduleAction, startScheduledRoutineAction } from "./actions";
 
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -41,14 +45,21 @@ export default async function WorkoutsPage() {
   const monthAgo = new Date();
   monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-  const [today, prefs, activeProgram, weekSessions, recentSessions, catalog] = await Promise.all([
+  const [today, prefs, activeProgram, weekSessions, recentSessions, catalog, routines, schedule] = await Promise.all([
     getToday(supabase, user.id),
     getOwnPreferences(supabase, user.id).catch(() => null),
     getActiveProgram(supabase, user.id).catch(() => null),
     listSessionsInRange(supabase, user.id, fromIso, toIso),
     listSessionsInRange(supabase, user.id, monthAgo.toISOString().slice(0, 10), toIso),
     listExerciseCatalog(supabase, { limit: 60 }),
+    listRoutines(supabase, user.id),
+    listSchedule(supabase, user.id),
   ]);
+
+  const todayWeekday = new Date().getDay();
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const scheduledToday = schedule.find((s) => s.weekday === todayWeekday) ?? null;
+  const showStartScheduled = !today.workout && !!scheduledToday?.routine;
 
   const exercises = today.workout ? await getWorkoutExercisesForSession(supabase, today.workout.sessionId) : [];
   const stats = await getTrainingStats(supabase, user.id);
@@ -123,6 +134,21 @@ export default async function WorkoutsPage() {
                     <span className="absolute right-4 top-4 z-10 rounded-full bg-black/40 px-3 py-1 text-[10px] font-bold backdrop-blur">
                       HOY
                     </span>
+                  </div>
+                ) : showStartScheduled && scheduledToday?.routine ? (
+                  <div className="card mb-5 flex items-center justify-between border-accent/20">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-accent/90">Rutina programada</p>
+                      <p className="mt-1 truncate text-sm font-semibold">{scheduledToday.routine.name}</p>
+                      <p className="text-xs text-muted">{TRAINING_CONTEXT_LABELS[scheduledToday.routine.trainingContext]}</p>
+                    </div>
+                    <form action={startScheduledRoutineAction}>
+                      <input type="hidden" name="routineId" value={scheduledToday.routine.id} />
+                      <input type="hidden" name="date" value={todayIso} />
+                      <button className="flex-shrink-0 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black">
+                        Comenzar
+                      </button>
+                    </form>
                   </div>
                 ) : (
                   <div className="card mb-5 text-sm text-muted">No hay entrenamiento planeado para hoy.</div>
@@ -247,21 +273,29 @@ export default async function WorkoutsPage() {
           </div>
         }
         misRutinas={
-          activeProgram && plan ? (
-            <div className="card flex items-center justify-between">
-              <div>
-                <p className="font-semibold">{activeProgram.name}</p>
-                <p className="text-xs text-muted">
-                  {activeProgram.durationWeeks} semanas · Semana {plan.week} de {activeProgram.durationWeeks}
-                </p>
+          <>
+            {activeProgram && plan && (
+              <div className="card mb-5 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">{activeProgram.name}</p>
+                  <p className="text-xs text-muted">
+                    {activeProgram.durationWeeks} semanas · Semana {plan.week} de {activeProgram.durationWeeks}
+                  </p>
+                </div>
+                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
+                  {plan.percent}%
+                </div>
               </div>
-              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
-                {plan.percent}%
-              </div>
-            </div>
-          ) : (
-            <div className="card text-sm text-muted">Todavía no tienes un plan de entrenamiento activo.</div>
-          )
+            )}
+            <RoutinesManager
+              routines={routines}
+              schedule={schedule}
+              catalog={catalog}
+              createRoutineAction={createRoutineAction}
+              deleteRoutineAction={deleteRoutineAction}
+              assignScheduleAction={assignScheduleAction}
+            />
+          </>
         }
         explorar={
           <div className="space-y-2">
