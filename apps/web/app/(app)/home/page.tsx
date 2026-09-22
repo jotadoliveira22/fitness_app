@@ -42,8 +42,8 @@ export default async function HomePage() {
 
       {!today.onboardingCompleted && (
         <div className="card mb-6 border-accent/40 bg-accent/10">
-          <p className="text-sm font-semibold text-accent">Completá tu perfil</p>
-          <p className="mt-1 text-xs text-muted">Contanos tus objetivos para armar tu plan.</p>
+          <p className="text-sm font-semibold text-accent">Completa tu perfil</p>
+          <p className="mt-1 text-xs text-muted">Cuéntanos tus objetivos para armar tu plan.</p>
         </div>
       )}
 

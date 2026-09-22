@@ -52,7 +52,7 @@ function LoginForm() {
           )}
         </h1>
         <p className="mt-2 text-sm text-muted">
-          {mode === "login" ? "Hábitos reales. Resultados de verdad." : "Creá tu cuenta para arrancar."}
+          {mode === "login" ? "Hábitos reales. Resultados de verdad." : "Crea tu cuenta para arrancar."}
         </p>
       </div>
 
@@ -106,11 +106,11 @@ function LoginForm() {
       >
         {mode === "login" ? (
           <>
-            ¿No tenés cuenta? <span className="font-semibold text-accent">Crear una</span>
+            ¿No tienes cuenta? <span className="font-semibold text-accent">Crear una</span>
           </>
         ) : (
           <>
-            ¿Ya tenés cuenta? <span className="font-semibold text-accent">Ingresar</span>
+            ¿Ya tienes cuenta? <span className="font-semibold text-accent">Ingresar</span>
           </>
         )}
       </button>

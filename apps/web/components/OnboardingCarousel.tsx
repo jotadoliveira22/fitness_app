@@ -15,11 +15,11 @@ const SLIDES = [
         VERSIÓN <span className="text-accent">SUMA HOY</span>
       </>
     ),
-    body: "Salud, entrenamiento y nutrición en un solo lugar, para una mejor versión de vos.",
+    body: "Salud, entrenamiento y nutrición en un solo lugar, para una mejor versión de ti.",
     features: [
       { Icon: DumbbellIcon, label: "Entrena mejor" },
       { Icon: LeafIcon, label: "Aliméntate mejor" },
-      { Icon: TrendingUpIcon, label: "Progresá de verdad" },
+      { Icon: TrendingUpIcon, label: "Progresa de verdad" },
     ],
   },
   {
@@ -47,7 +47,7 @@ const SLIDES = [
         <span className="text-accent">PROGRESO REALES</span>
       </>
     ),
-    body: "Registrá tus comidas y seguí tus macros contra tus objetivos. Medí tu evolución con peso, medidas y fotos — sin números inventados.",
+    body: "Registra tus comidas y sigue tus macros contra tus objetivos. Mide tu evolución con peso, medidas y fotos — sin números inventados.",
     features: [
       { Icon: MealIcon, label: "Registro de comidas" },
       { Icon: ScaleIcon, label: "Peso en el tiempo" },
@@ -96,7 +96,7 @@ export function OnboardingCarousel() {
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/10 to-black/50" />
 
         <div className="relative flex items-start justify-between p-6">
-          <Image src="/brand/sumiva-logo.png" alt="Sumiva" width={150} height={38} priority className="drop-shadow-lg" />
+          <Image src="/brand/sumiva-logo-white.png" alt="Sumiva" width={150} height={38} priority className="drop-shadow-lg" />
           <Link href="/login" className="rounded-full bg-black/50 px-4 py-2 text-xs font-semibold text-white backdrop-blur">
             Saltar
           </Link>

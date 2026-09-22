@@ -40,10 +40,10 @@ export async function signUp(_prev: AuthActionState, formData: FormData): Promis
   const password = String(formData.get("password") ?? "");
 
   if (!firstName || !lastName) {
-    return { error: "Ingresá tu nombre y apellido." };
+    return { error: "Ingresa tu nombre y apellido." };
   }
   if (!age || age < 18 || age > 100) {
-    return { error: "Tenés que ser mayor de 18 años para usar Sumiva." };
+    return { error: "Tienes que ser mayor de 18 años para usar Sumiva." };
   }
 
   const birthYear = new Date().getFullYear() - age;

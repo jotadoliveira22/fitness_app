@@ -51,7 +51,7 @@ export default async function NutritionPage() {
             {Math.round(consumedToday.calories)}
             {targets?.dailyCalories && <span className="text-sm font-normal text-muted"> / {targets.dailyCalories} kcal</span>}
           </p>
-          {remaining != null && <p className="mt-1 text-xs text-accent">Aún podés consumir {Math.round(remaining)} kcal</p>}
+          {remaining != null && <p className="mt-1 text-xs text-accent">Aún puedes consumir {Math.round(remaining)} kcal</p>}
         </div>
       </div>
 
@@ -113,7 +113,7 @@ export default async function NutritionPage() {
       )}
 
       {!activePlan && meals.length === 0 && (
-        <div className="card text-sm text-muted">Todavía no tenés un plan de nutrición activo.</div>
+        <div className="card text-sm text-muted">Todavía no tienes un plan de nutrición activo.</div>
       )}
     </div>
   );

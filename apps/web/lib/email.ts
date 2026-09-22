@@ -21,19 +21,19 @@ function welcomeEmailHtml(firstName: string, siteUrl: string): string {
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;background-color:#161718;border-radius:20px;overflow:hidden;border:1px solid #2a2b2c;">
         <tr><td style="padding:32px 32px 0 32px;text-align:center;">
-          <img src="${siteUrl}/brand/sumiva-logo.png" alt="Sumiva" width="140" style="display:inline-block;" />
+          <img src="${siteUrl}/brand/sumiva-logo-white.png" alt="Sumiva" width="140" style="display:inline-block;" />
         </td></tr>
         <tr><td style="padding:24px 32px 0 32px;text-align:center;">
           <h1 style="margin:0;font-size:22px;font-weight:800;color:#ffffff;">¡Bienvenido, ${firstName}! 🎉</h1>
           <p style="margin:12px 0 0 0;font-size:14px;line-height:1.6;color:#9a9c9e;">
-            Tu cuenta ya está activa. Esto es lo que podés hacer en Sumiva:
+            Tu cuenta ya está activa. Esto es lo que puedes hacer en Sumiva:
           </p>
         </td></tr>
         <tr><td style="padding:8px 32px 0 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             ${feature("🏠", "Inicio", "Tu resumen del día: calorías, macros, entrenamiento planeado y ayuno activo, todo en un vistazo.")}
             ${feature("🏋️", "Entrenamientos", "Planes de entrenamiento adaptados a tu contexto y nivel, con seguimiento de cada sesión.")}
-            ${feature("🍽️", "Nutrición", "Registrá tus comidas y seguí tus macros contra objetivos personalizados.")}
+            ${feature("🍽️", "Nutrición", "Registra tus comidas y sigue tus macros contra objetivos personalizados.")}
             ${feature("📈", "Progreso", "Peso, medidas corporales y fotos de evolución para ver tus resultados reales.")}
           </table>
         </td></tr>

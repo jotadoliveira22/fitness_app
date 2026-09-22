@@ -3,7 +3,11 @@ type IconProps = { className?: string };
 export function DumbbellIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className={className}>
-      <path d="M6.5 6.5v11M17.5 6.5v11M2 9.5v5M22 9.5v5M4 8.5h5M4 15.5h5M15 8.5h5M15 15.5h5" />
+      <line x1="6" y1="12" x2="18" y2="12" />
+      <line x1="4" y1="8" x2="4" y2="16" />
+      <line x1="20" y1="8" x2="20" y2="16" />
+      <line x1="7" y1="9" x2="7" y2="15" />
+      <line x1="17" y1="9" x2="17" y2="15" />
     </svg>
   );
 }
@@ -38,8 +42,7 @@ export function CalendarIcon({ className }: IconProps) {
 export function FlameIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1.5-1-2.5-1-2.5.5 3-1.5 4-1.5 4C17 8 14 6 12 2Z" />
-      <path d="M8 14a4 4 0 1 0 8 0c0-2-1.5-3-2-5-1 2-6 2-6 5Z" />
+      <path d="M12 3c-1.5 3-4 4.5-4 8a4 4 0 0 0 8 0c0-1-.3-1.8-.7-2.5.1 1.4-.6 2.2-1.3 2.5.6-2-.5-4-2-8Z" />
     </svg>
   );
 }
@@ -56,7 +59,8 @@ export function CheckCircleIcon({ className }: IconProps) {
 export function MealIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M7 2v7a2 2 0 0 0 2 2v11M7 2v7M11 2v9M15 2c-1.5 0-2.5 1.5-2.5 3.5S13.5 12 15 12s2.5-1.5 2.5-3.5S16.5 2 15 2ZM15 12v10" />
+      <path d="M6 2v7M8 2v7M6 9c0 1-1 1.5-1 1.5V22M9 9c0 1 .5 1.5 1 1.5" />
+      <path d="M17 2c-2 0-3 2-3 5s1 4 3 4v11" />
     </svg>
   );
 }
@@ -64,8 +68,9 @@ export function MealIcon({ className }: IconProps) {
 export function ScaleIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M12 3v3M5 6h14M5 6l-2 7a3.5 3.5 0 0 0 7 0L8 6M19 6l-2 7a3.5 3.5 0 0 0 7 0L22 13" />
-      <rect x="6" y="17" width="12" height="4" rx="1" />
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 9.8V12l1.6 1" />
     </svg>
   );
 }
