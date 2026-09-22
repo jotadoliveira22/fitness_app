@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useActionState, useState } from "react";
 import { signIn, signUp, type AuthActionState } from "./actions";
+import { PasswordInput } from "@/components/PasswordInput";
 
 const initialState: AuthActionState = { error: null };
 
@@ -76,13 +77,11 @@ function LoginForm() {
           </>
         )}
         <input name="email" type="email" required placeholder="Email" className="input" autoComplete="email" />
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           required
           minLength={6}
           placeholder="Contraseña"
-          className="input"
           autoComplete={mode === "login" ? "current-password" : "new-password"}
         />
 

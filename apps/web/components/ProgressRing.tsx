@@ -1,6 +1,6 @@
 export function ProgressRing({ percent, size = 96 }: { percent: number; size?: number }) {
   const clamped = Math.max(0, Math.min(100, percent));
-  const stroke = 8;
+  const stroke = size < 80 ? 6 : 8;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped / 100);
@@ -25,7 +25,7 @@ export function ProgressRing({ percent, size = 96 }: { percent: number; size?: n
         textAnchor="middle"
         dominantBaseline="middle"
         transform={`rotate(90 ${size / 2} ${size / 2})`}
-        className="fill-white text-lg font-bold"
+        className={`fill-white font-bold ${size < 80 ? "text-xs" : "text-lg"}`}
       >
         {Math.round(clamped)}%
       </text>

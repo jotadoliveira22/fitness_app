@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getToday, getOwnPreferences, getLatestMeasurement, insertMeasurement, getActiveProgram } from "@fitness-app/api";
 import { getTrainingStats } from "@/lib/training-stats";
+import { computePlanProgress } from "@/lib/plan-progress";
 import { IconStat } from "@/components/IconStat";
 
 async function signOut() {
@@ -54,13 +55,7 @@ export default async function ProfilePage() {
   const heightM = profile?.heightCm ? profile.heightCm / 100 : null;
   const bmi = heightM && today.latestWeight ? today.latestWeight.weightKg / (heightM * heightM) : null;
 
-  let planPercent: number | null = null;
-  let planWeek: number | null = null;
-  if (activeProgram) {
-    const daysElapsed = Math.floor((Date.now() - new Date(activeProgram.startedAt).getTime()) / 86400000);
-    planWeek = Math.min(activeProgram.durationWeeks, Math.floor(daysElapsed / 7) + 1);
-    planPercent = Math.min(100, Math.round((planWeek / activeProgram.durationWeeks) * 100));
-  }
+  const plan = activeProgram ? computePlanProgress(activeProgram) : null;
 
   return (
     <div className="px-5 pt-8">
@@ -103,18 +98,18 @@ export default async function ProfilePage() {
         </>
       )}
 
-      {activeProgram && planPercent != null && (
+      {activeProgram && plan && (
         <>
           <p className="mb-3 text-sm font-semibold">Mi plan</p>
           <div className="card mb-6 flex items-center justify-between">
             <div>
               <p className="font-semibold">{activeProgram.name}</p>
               <p className="text-xs text-muted">
-                {activeProgram.durationWeeks} semanas · Semana {planWeek} de {activeProgram.durationWeeks}
+                {activeProgram.durationWeeks} semanas · Semana {plan.week} de {activeProgram.durationWeeks}
               </p>
             </div>
             <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
-              {planPercent}%
+              {plan.percent}%
             </div>
           </div>
         </>
