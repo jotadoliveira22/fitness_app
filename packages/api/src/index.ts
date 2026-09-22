@@ -39,6 +39,7 @@ export { getToday, type TodayResult } from "./services/today.service.js";
 // Training Engine
 export {
   getExerciseById,
+  listExerciseCatalog,
   findExerciseCandidates,
   getExerciseAlternatives,
   type ExerciseRecord,

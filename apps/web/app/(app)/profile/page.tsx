@@ -3,6 +3,20 @@ import { getToday, getOwnPreferences, getLatestMeasurement, insertMeasurement, g
 import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { IconStat } from "@/components/IconStat";
+import {
+  DumbbellIcon,
+  FlameIcon,
+  CalendarIcon,
+  TargetIcon,
+  ClockIcon,
+  TrendingUpIcon,
+  ScaleIcon,
+  RulerIcon,
+  DropletIcon,
+  UserIcon,
+  BellIcon,
+  SettingsIcon,
+} from "@/components/icons";
 
 async function signOut() {
   "use server";
@@ -31,9 +45,9 @@ async function saveBodyFat(formData: FormData) {
 }
 
 const SETTINGS_ROWS = [
-  { icon: "👤", label: "Cuenta y perfil" },
-  { icon: "🔔", label: "Notificaciones" },
-  { icon: "⚙️", label: "Preferencias de la app" },
+  { icon: UserIcon, label: "Cuenta y perfil" },
+  { icon: BellIcon, label: "Notificaciones" },
+  { icon: SettingsIcon, label: "Preferencias de la app" },
 ];
 
 export default async function ProfilePage() {
@@ -73,9 +87,9 @@ export default async function ProfilePage() {
       </div>
 
       <div className="mb-6 flex gap-3">
-        <IconStat icon="🏋️" value={stats.totalCompleted} label="Entrenamientos" />
-        <IconStat icon="🔥" value={stats.streakDays} label="Días en racha" />
-        <IconStat icon="📅" value={stats.activeWeeksCount} label="Semanas activas" />
+        <IconStat icon={DumbbellIcon} value={stats.totalCompleted} label="Entrenamientos" />
+        <IconStat icon={FlameIcon} value={stats.streakDays} label="Días en racha" />
+        <IconStat icon={CalendarIcon} value={stats.activeWeeksCount} label="Semanas activas" />
       </div>
 
       {today.activeGoals.length > 0 && (
@@ -83,15 +97,25 @@ export default async function ProfilePage() {
           <p className="mb-3 text-sm font-semibold">Mis objetivos</p>
           <div className="card mb-6 space-y-3">
             {today.activeGoals.map((goal) => (
-              <div key={goal.id} className="flex items-center justify-between text-sm">
-                <span>🎯 {goal.goalType}</span>
+              <div key={goal.id} className="flex items-center gap-2 text-sm">
+                <TargetIcon className="h-4 w-4 text-accent" /> {goal.goalType}
               </div>
             ))}
             {prefs?.trainingDaysPerWeek && (
               <div className="flex gap-4 border-t border-border pt-3 text-xs text-muted">
-                <span>🏋️ {prefs.trainingDaysPerWeek} días/semana</span>
-                {prefs.sessionDurationMinutes && <span>⏱ {prefs.sessionDurationMinutes} min/sesión</span>}
-                {prefs.experienceLevel && <span>📶 {prefs.experienceLevel}</span>}
+                <span className="flex items-center gap-1">
+                  <DumbbellIcon className="h-3.5 w-3.5" /> {prefs.trainingDaysPerWeek} días/semana
+                </span>
+                {prefs.sessionDurationMinutes && (
+                  <span className="flex items-center gap-1">
+                    <ClockIcon className="h-3.5 w-3.5" /> {prefs.sessionDurationMinutes} min/sesión
+                  </span>
+                )}
+                {prefs.experienceLevel && (
+                  <span className="flex items-center gap-1">
+                    <TrendingUpIcon className="h-3.5 w-3.5" /> {prefs.experienceLevel}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -117,9 +141,9 @@ export default async function ProfilePage() {
 
       <p className="mb-3 text-sm font-semibold">Mi cuerpo</p>
       <div className="mb-4 flex gap-3">
-        <IconStat icon="⚖️" value={today.latestWeight ? today.latestWeight.weightKg : "—"} label="Peso (kg)" />
-        <IconStat icon="📏" value={bmi ? bmi.toFixed(1) : "—"} label="IMC" />
-        <IconStat icon="💧" value={latestMeasurement?.bodyFatPct ? `${latestMeasurement.bodyFatPct}%` : "—"} label="Grasa corporal" />
+        <IconStat icon={ScaleIcon} value={today.latestWeight ? today.latestWeight.weightKg : "—"} label="Peso (kg)" />
+        <IconStat icon={RulerIcon} value={bmi ? bmi.toFixed(1) : "—"} label="IMC" />
+        <IconStat icon={DropletIcon} value={latestMeasurement?.bodyFatPct ? `${latestMeasurement.bodyFatPct}%` : "—"} label="Grasa corporal" />
       </div>
       <form action={saveBodyFat} className="mb-6 flex gap-2">
         <input
@@ -140,8 +164,8 @@ export default async function ProfilePage() {
       <div className="card mb-6 divide-y divide-border">
         {SETTINGS_ROWS.map((row) => (
           <div key={row.label} className="flex items-center justify-between py-3 first:pt-0 last:pb-0 text-sm">
-            <span>
-              {row.icon} {row.label}
+            <span className="flex items-center gap-2">
+              <row.icon className="h-4 w-4 text-accent" /> {row.label}
             </span>
             <span className="text-muted">›</span>
           </div>

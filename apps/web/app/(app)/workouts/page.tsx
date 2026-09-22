@@ -1,6 +1,19 @@
+import Image from "next/image";
+import {
+  getToday,
+  getOwnPreferences,
+  getActiveProgram,
+  listSessionsInRange,
+  getWorkoutExercisesForSession,
+  listExerciseCatalog,
+} from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
-import { getToday, listSessionsInRange, getWorkoutExercisesForSession } from "@fitness-app/api";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
+import { getTrainingStats } from "@/lib/training-stats";
+import { computePlanProgress } from "@/lib/plan-progress";
+import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
+import { WorkoutTabs } from "@/components/WorkoutTabs";
+import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon } from "@/components/icons";
 
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -25,95 +38,261 @@ export default async function WorkoutsPage() {
   const fromIso = monday.toISOString().slice(0, 10);
   const toIso = sunday.toISOString().slice(0, 10);
 
-  const [today, weekSessions] = await Promise.all([
+  const monthAgo = new Date();
+  monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+  const [today, prefs, activeProgram, weekSessions, recentSessions, catalog] = await Promise.all([
     getToday(supabase, user.id),
+    getOwnPreferences(supabase, user.id).catch(() => null),
+    getActiveProgram(supabase, user.id).catch(() => null),
     listSessionsInRange(supabase, user.id, fromIso, toIso),
+    listSessionsInRange(supabase, user.id, monthAgo.toISOString().slice(0, 10), toIso),
+    listExerciseCatalog(supabase, { limit: 60 }),
   ]);
 
   const exercises = today.workout ? await getWorkoutExercisesForSession(supabase, today.workout.sessionId) : [];
+  const stats = await getTrainingStats(supabase, user.id);
+  const plan = activeProgram ? computePlanProgress(activeProgram) : null;
 
   const sessionsByDate = new Map(weekSessions.map((s) => [s.scheduledDate, s]));
   const completedCount = weekSessions.filter((s) => s.status === "completed").length;
 
+  const recentCompleted = recentSessions
+    .filter((s) => s.status === "completed" && s.completedAt)
+    .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+    .slice(0, 3);
+  const recentWithCounts = await Promise.all(
+    recentCompleted.map(async (s) => ({ session: s, count: (await getWorkoutExercisesForSession(supabase, s.id)).length })),
+  );
+
   return (
-    <div className="px-5 pt-8">
-      <h1 className="mb-1 font-display text-2xl font-extrabold">Entrenamiento</h1>
-      <p className="mb-6 text-xs text-muted">Disciplina hoy, resultados mañana.</p>
-
-      {today.workout ? (
-        <div className="card mb-6 overflow-hidden">
-          <div className="mb-3 flex items-start justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Rutina de hoy</p>
-              <p className="font-display text-lg font-bold">{today.workout.objective ?? "Entrenamiento"}</p>
-            </div>
-            <span className="rounded-full bg-accent/20 px-3 py-1 text-[10px] font-bold text-accent">HOY</span>
-          </div>
-          <img
-            src={getWorkoutPhoto(today.workout.trainingContext)}
-            alt=""
-            className="mb-3 h-32 w-full rounded-xl object-cover"
-          />
-          <div className="mb-4 flex gap-4 text-xs text-muted">
-            <span>🏋️ {today.workout.exerciseCount} ejercicios</span>
-            <span>📍 {today.workout.trainingContext}</span>
-          </div>
-          <button className="btn-primary w-full">
-            {today.workout.status === "completed" ? "Ver resumen ✓" : "▶ Iniciar entrenamiento"}
-          </button>
+    <div className="px-5 pt-6 pb-4">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Image src="/brand/sumiva-isotype.png" alt="" width={26} height={26} />
+          <span className="font-display text-sm font-extrabold tracking-wide">SUMIVA</span>
         </div>
-      ) : (
-        <div className="card mb-6 text-sm text-muted">No hay entrenamiento planeado para hoy.</div>
-      )}
-
-      {exercises.length > 0 && (
-        <>
-          <p className="mb-3 text-sm font-semibold">Ejercicios de la rutina</p>
-          <div className="mb-6 space-y-2">
-            {exercises.map((ex) => (
-              <div key={ex.id} className="card flex items-center justify-between">
-                <p className="font-semibold">{ex.exercise?.name ?? "Ejercicio"}</p>
-                <p className="text-xs text-muted">
-                  {ex.targetSets} series{ex.targetReps ? ` · ${ex.targetReps} reps` : ""}
-                </p>
-              </div>
-            ))}
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-surface">
+            <BellIcon className="h-4 w-4" />
           </div>
-        </>
-      )}
-
-      <div className="card mb-6">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-semibold">Tu semana</p>
-          <span className="text-xs font-semibold text-accent">{completedCount} de {weekSessions.length} completados</span>
-        </div>
-        <div className="flex justify-between">
-          {WEEKDAY_LABELS.map((label, i) => {
-            const d = new Date(monday);
-            d.setDate(d.getDate() + i);
-            const iso = d.toISOString().slice(0, 10);
-            const session = sessionsByDate.get(iso);
-            const isDone = session?.status === "completed";
-            const isPlanned = !!session;
-            return (
-              <div key={label} className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                    isDone
-                      ? "bg-accent text-black"
-                      : isPlanned
-                        ? "border border-accent/50 text-accent"
-                        : "bg-surface-raised text-muted"
-                  }`}
-                >
-                  {isDone ? "✓" : ""}
-                </div>
-                <span className="text-[10px] text-muted">{label}</span>
-              </div>
-            );
-          })}
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-raised text-xs font-bold">
+            {(today.profile?.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
+          </div>
         </div>
       </div>
+
+      <h1 className="mb-1 font-display text-2xl font-extrabold">Entrenamiento</h1>
+      <p className="mb-5 text-xs text-muted">Disciplina hoy, resultados mañana.</p>
+
+      <WorkoutTabs>
+        {(tab) => (
+          <>
+            {tab === "Plan" && (
+              <>
+                {today.workout ? (
+                  <div className="relative mb-5 overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/15 via-surface to-surface p-5">
+                    <div className="relative z-10 max-w-[62%]">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-accent/90">Rutina de hoy</p>
+                      <p className="mt-1 font-display text-xl font-extrabold leading-tight">
+                        {today.workout.objective ?? "Entrenamiento"}
+                      </p>
+                      <p className="mt-2 text-xs text-muted">Activa tu mejor versión.</p>
+                      <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted">
+                        {prefs?.sessionDurationMinutes && (
+                          <span className="flex items-center gap-1">
+                            <ClockIcon className="h-3.5 w-3.5 text-accent" /> {prefs.sessionDurationMinutes} min
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <DumbbellIcon className="h-3.5 w-3.5 text-accent" /> {today.workout.exerciseCount} ejercicios
+                        </span>
+                        {prefs?.experienceLevel && (
+                          <span className="flex items-center gap-1">
+                            <TrendingUpIcon className="h-3.5 w-3.5 text-accent" /> {prefs.experienceLevel}
+                          </span>
+                        )}
+                      </div>
+                      <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black">
+                        {today.workout.status === "completed" ? "Ver resumen" : "Iniciar entrenamiento"} →
+                      </button>
+                    </div>
+                    <img
+                      src={getWorkoutPhoto(today.workout.trainingContext)}
+                      alt=""
+                      className="absolute inset-y-0 right-0 w-[45%] object-cover [mask-image:linear-gradient(to_right,transparent,black_25%)]"
+                    />
+                    <span className="absolute right-4 top-4 z-10 rounded-full bg-black/40 px-3 py-1 text-[10px] font-bold backdrop-blur">
+                      HOY
+                    </span>
+                  </div>
+                ) : (
+                  <div className="card mb-5 text-sm text-muted">No hay entrenamiento planeado para hoy.</div>
+                )}
+
+                {exercises.length > 0 && (
+                  <>
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-sm font-semibold">Ejercicios de la rutina</p>
+                    </div>
+                    <div className="mb-5 grid grid-cols-3 gap-2">
+                      {exercises.map((ex) => (
+                        <div key={ex.id} className="card px-2 py-3 text-center">
+                          <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
+                            <DumbbellIcon className="h-4 w-4 text-accent" />
+                          </div>
+                          <p className="truncate text-xs font-semibold">{ex.exercise?.name ?? "Ejercicio"}</p>
+                          <p className="text-[10px] text-muted">
+                            {ex.targetSets} series{ex.targetReps ? ` · ${ex.targetReps}` : ""}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div className="card mb-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-semibold">Tu semana</p>
+                    <span className="text-xs font-semibold text-accent">
+                      {completedCount} de {weekSessions.length} completados
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    {WEEKDAY_LABELS.map((label, i) => {
+                      const d = new Date(monday);
+                      d.setDate(d.getDate() + i);
+                      const iso = d.toISOString().slice(0, 10);
+                      const session = sessionsByDate.get(iso);
+                      const isDone = session?.status === "completed";
+                      const isPlanned = !!session;
+                      return (
+                        <div key={label} className="flex flex-col items-center gap-1.5">
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                              isDone
+                                ? "bg-accent text-black"
+                                : isPlanned
+                                  ? "border border-accent/50"
+                                  : "bg-surface-raised"
+                            }`}
+                          >
+                            {isDone && <CheckCircleIcon className="h-4 w-4" />}
+                          </div>
+                          <span className="text-[10px] text-muted">{label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 flex items-center gap-2 border-t border-border pt-3 text-xs text-muted">
+                    <FlameIcon className="h-4 w-4 text-accent" />
+                    <span className="font-semibold text-white">{stats.weekStreak}</span> semanas de racha
+                  </div>
+                </div>
+
+                {plan && activeProgram && (
+                  <div className="card mb-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">{activeProgram.name}</p>
+                      <p className="text-xs text-muted">
+                        Semana {plan.week} de {activeProgram.durationWeeks}
+                      </p>
+                    </div>
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-accent text-xs font-bold">
+                      {plan.percent}%
+                    </div>
+                  </div>
+                )}
+
+                {recentWithCounts.length > 0 && (
+                  <>
+                    <p className="mb-3 text-sm font-semibold">Entrenamientos recientes</p>
+                    <div className="space-y-2">
+                      {recentWithCounts.map(({ session, count }) => (
+                        <div key={session.id} className="card flex items-center gap-3">
+                          <img
+                            src={getWorkoutPhoto(session.trainingContext)}
+                            alt=""
+                            className="h-11 w-11 flex-shrink-0 rounded-xl object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">{session.objective ?? "Entrenamiento"}</p>
+                            <p className="text-xs text-muted">
+                              {count} ejercicios · {TRAINING_CONTEXT_LABELS[session.trainingContext]}
+                            </p>
+                          </div>
+                          <span className="flex-shrink-0 text-xs text-muted">
+                            {new Date(session.completedAt!).toLocaleDateString("es", { day: "2-digit", month: "short" })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {tab === "Ejercicios" && (
+              <div className="space-y-2">
+                {catalog.map((ex) => (
+                  <div key={ex.id} className="card flex items-center gap-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                      <DumbbellIcon className="h-4 w-4 text-accent" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{ex.name}</p>
+                      <p className="text-xs text-muted">
+                        {MUSCLE_GROUP_LABELS[ex.primaryMuscleGroup]} · {ex.difficulty}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === "Mis rutinas" && (
+              <>
+                {activeProgram && plan ? (
+                  <div className="card flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold">{activeProgram.name}</p>
+                      <p className="text-xs text-muted">
+                        {activeProgram.durationWeeks} semanas · Semana {plan.week} de {activeProgram.durationWeeks}
+                      </p>
+                    </div>
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
+                      {plan.percent}%
+                    </div>
+                  </div>
+                ) : (
+                  <div className="card text-sm text-muted">Todavía no tienes un plan de entrenamiento activo.</div>
+                )}
+              </>
+            )}
+
+            {tab === "Explorar" && (
+              <div className="space-y-2">
+                <p className="mb-2 text-xs text-muted">Catálogo completo de ejercicios disponibles.</p>
+                {catalog.map((ex) => (
+                  <div key={ex.id} className="card">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold">{ex.name}</p>
+                      <span className="text-[10px] text-muted">{ex.difficulty}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {ex.modalities.map((m) => (
+                        <span key={m} className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-muted">
+                          {TRAINING_CONTEXT_LABELS[m]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </WorkoutTabs>
     </div>
   );
 }

@@ -4,6 +4,7 @@ export interface TrainingStats {
   totalCompleted: number;
   streakDays: number;
   activeWeeksCount: number;
+  weekStreak: number;
 }
 
 function isoWeekKey(date: Date): string {
@@ -39,6 +40,26 @@ function computeStreak(completedDates: string[]): number {
   return streak;
 }
 
+/**
+ * Racha en semanas consecutivas (incluyendo esta semana o la anterior como
+ * punto de partida) con al menos un entrenamiento completado.
+ */
+function computeWeekStreak(weekKeys: Set<string>): number {
+  let streak = 0;
+  const cursor = new Date();
+
+  if (!weekKeys.has(isoWeekKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 7);
+  }
+
+  while (weekKeys.has(isoWeekKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 7);
+  }
+
+  return streak;
+}
+
 export async function getTrainingStats(client: SupabaseClient, userId: string): Promise<TrainingStats> {
   const { data, error } = await client
     .from("workout_sessions")
@@ -47,7 +68,7 @@ export async function getTrainingStats(client: SupabaseClient, userId: string): 
     .eq("status", "completed")
     .not("completed_at", "is", null);
 
-  if (error || !data) return { totalCompleted: 0, streakDays: 0, activeWeeksCount: 0 };
+  if (error || !data) return { totalCompleted: 0, streakDays: 0, activeWeeksCount: 0, weekStreak: 0 };
 
   const completedDates = data.map((row) => row.completed_at as string);
   const activeWeeks = new Set(completedDates.map((d) => isoWeekKey(new Date(d))));
@@ -56,5 +77,6 @@ export async function getTrainingStats(client: SupabaseClient, userId: string): 
     totalCompleted: completedDates.length,
     streakDays: computeStreak(completedDates),
     activeWeeksCount: activeWeeks.size,
+    weekStreak: computeWeekStreak(activeWeeks),
   };
 }

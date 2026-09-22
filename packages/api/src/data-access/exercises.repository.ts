@@ -86,6 +86,25 @@ export async function getExerciseById(
 }
 
 /**
+ * Catálogo completo (o filtrado por modalidad) para pantallas de browse,
+ * a diferencia de findExerciseCandidates que exige un movementPattern
+ * puntual para armar un programa.
+ */
+export async function listExerciseCatalog(
+  client: SupabaseClient,
+  params?: { modality?: TrainingContext; limit?: number },
+): Promise<ExerciseRecord[]> {
+  let query = client.from("exercises").select(EXERCISE_COLUMNS).is("deleted_at", null).order("name");
+
+  if (params?.modality) query = query.contains("modalities", [params.modality]);
+  if (params?.limit) query = query.limit(params.limit);
+
+  const { data, error } = await query;
+  if (error) throw new DataAccessError("No se pudo obtener el catálogo de ejercicios", error);
+  return attachEquipment(client, data as ExerciseRow[]);
+}
+
+/**
  * Candidatos por patrón de movimiento + modalidad + dificultad máxima. El
  * filtro final por equipamiento disponible se hace en el motor (en memoria),
  * porque "subconjunto de equipamiento" no se expresa limpio en una sola

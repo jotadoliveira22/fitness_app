@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { HomeIcon, DumbbellIcon, MealIcon, ChartBarIcon, UserIcon } from "./icons";
 
 const ITEMS = [
-  { href: "/home", label: "Inicio", icon: "🏠" },
-  { href: "/workouts", label: "Entrenos", icon: "🏋️" },
-  { href: "/nutrition", label: "Nutrición", icon: "🍽️" },
-  { href: "/progress", label: "Actividad", icon: "📈" },
-  { href: "/profile", label: "Perfil", icon: "👤" },
+  { href: "/home", label: "Inicio", icon: HomeIcon },
+  { href: "/workouts", label: "Entrenos", icon: DumbbellIcon },
+  { href: "/nutrition", label: "Nutrición", icon: MealIcon },
+  { href: "/progress", label: "Actividad", icon: ChartBarIcon },
+  { href: "/profile", label: "Perfil", icon: UserIcon },
 ];
 
 export function BottomNav() {
@@ -27,7 +28,7 @@ export function BottomNav() {
                 active ? "text-accent" : "text-muted"
               }`}
             >
-              <span className="text-lg">{item.icon}</span>
+              <item.icon className="h-5 w-5" />
               {item.label}
             </Link>
           );

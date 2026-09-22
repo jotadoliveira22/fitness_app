@@ -187,7 +187,7 @@ export default async function HomePage() {
             <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
               <ChartBarIcon className="h-3.5 w-3.5" /> Tu progreso
             </p>
-            <span className="text-xs">Vas muy bien 💪</span>
+            <span className="text-xs">Vas muy bien</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-lg font-bold">{plan.percent}%</span>

@@ -3,6 +3,7 @@ import { getToday, listWeightLogsSince, listPhotosSince, getSignedPhotoUrl } fro
 import { IconStat } from "@/components/IconStat";
 import { LineChart } from "@/components/LineChart";
 import { getTrainingStats } from "@/lib/training-stats";
+import { DumbbellIcon, FlameIcon, CalendarIcon, TargetIcon } from "@/components/icons";
 
 export default async function ProgressPage() {
   const supabase = await createClient();
@@ -57,9 +58,9 @@ export default async function ProgressPage() {
       </div>
 
       <div className="mb-6 flex gap-3">
-        <IconStat icon="🏋️" value={stats.totalCompleted} label="Entrenamientos" />
-        <IconStat icon="🔥" value={stats.streakDays} label="Racha (días)" />
-        <IconStat icon="📅" value={stats.activeWeeksCount} label="Semanas activas" />
+        <IconStat icon={DumbbellIcon} value={stats.totalCompleted} label="Entrenamientos" />
+        <IconStat icon={FlameIcon} value={stats.streakDays} label="Racha (días)" />
+        <IconStat icon={CalendarIcon} value={stats.activeWeeksCount} label="Semanas activas" />
       </div>
 
       {recentPhotos.length > 0 && (
@@ -80,8 +81,8 @@ export default async function ProgressPage() {
           <p className="mb-3 text-sm font-semibold">Tus objetivos</p>
           <div className="space-y-3">
             {today.activeGoals.map((goal) => (
-              <div key={goal.id} className="card text-sm">
-                🎯 {goal.goalType}
+              <div key={goal.id} className="card flex items-center gap-2 text-sm">
+                <TargetIcon className="h-4 w-4 text-accent" /> {goal.goalType}
               </div>
             ))}
           </div>

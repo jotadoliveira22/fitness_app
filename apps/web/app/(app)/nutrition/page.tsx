@@ -2,12 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getToday, getLogsForDate } from "@fitness-app/api";
 import { ProgressRing } from "@/components/ProgressRing";
 import { IconStat } from "@/components/IconStat";
+import { DumbbellIcon, GrainIcon, DropletIcon, MealIcon } from "@/components/icons";
 
-const MEAL_LABELS: Record<string, { label: string; icon: string }> = {
-  breakfast: { label: "Desayuno", icon: "🍳" },
-  lunch: { label: "Almuerzo", icon: "🥗" },
-  dinner: { label: "Cena", icon: "🍽️" },
-  snack: { label: "Snack", icon: "🍎" },
+const MEAL_LABELS: Record<string, string> = {
+  breakfast: "Desayuno",
+  lunch: "Almuerzo",
+  dinner: "Cena",
+  snack: "Snack",
 };
 
 export default async function NutritionPage() {
@@ -57,17 +58,17 @@ export default async function NutritionPage() {
 
       <div className="mb-6 flex gap-3">
         <IconStat
-          icon="💪"
+          icon={DumbbellIcon}
           value={`${Math.round(consumedToday.proteinG)}${targets?.proteinG ? `/${targets.proteinG}` : ""}`}
           label="proteína g"
         />
         <IconStat
-          icon="🌾"
+          icon={GrainIcon}
           value={`${Math.round(consumedToday.carbsG)}${targets?.carbsG ? `/${targets.carbsG}` : ""}`}
           label="carbs g"
         />
         <IconStat
-          icon="🥑"
+          icon={DropletIcon}
           value={`${Math.round(consumedToday.fatG)}${targets?.fatG ? `/${targets.fatG}` : ""}`}
           label="grasas g"
         />
@@ -86,14 +87,14 @@ export default async function NutritionPage() {
               }),
               { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 },
             );
-            const meta = MEAL_LABELS[meal.mealType] ?? { label: meal.mealType, icon: "🍽️" };
+            const label = MEAL_LABELS[meal.mealType] ?? meal.mealType;
             return (
               <div key={meal.id} className="card flex items-center gap-3">
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-surface-raised text-lg">
-                  {meta.icon}
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-surface-raised">
+                  <MealIcon className="h-4 w-4 text-accent" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold">{meta.label}</p>
+                  <p className="font-semibold">{label}</p>
                   <p className="truncate text-xs text-muted">
                     {meal.items.map((i) => i.foodDescription).join(", ") || "Sin detalle"}
                   </p>
