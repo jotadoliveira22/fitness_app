@@ -119,6 +119,25 @@ export async function countSessionsSince(
   };
 }
 
+export async function listSessionsInRange(
+  client: SupabaseClient,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+): Promise<WorkoutSessionRecord[]> {
+  const { data, error } = await client
+    .from("workout_sessions")
+    .select(COLUMNS)
+    .eq("user_id", userId)
+    .gte("scheduled_date", fromDate)
+    .lte("scheduled_date", toDate)
+    .is("deleted_at", null)
+    .order("scheduled_date", { ascending: true });
+
+  if (error) throw new DataAccessError("No se pudo obtener las sesiones del rango", error);
+  return (data as WorkoutSessionRow[]).map(toRecord);
+}
+
 export async function getSessionForDate(
   client: SupabaseClient,
   userId: string,

@@ -52,6 +52,7 @@ export {
 export {
   getSessionById,
   getSessionForDate,
+  listSessionsInRange,
   type WorkoutSessionRecord,
 } from "./data-access/workout-sessions.repository.js";
 export { getForSession as getWorkoutExercisesForSession, type WorkoutExerciseRecord } from "./data-access/workout-exercises.repository.js";
