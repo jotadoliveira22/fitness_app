@@ -1,15 +1,26 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useActionState, useState } from "react";
 import { signIn, signUp, type AuthActionState } from "./actions";
 
 const initialState: AuthActionState = { error: null };
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [signInState, signInAction, signInPending] = useActionState(signIn, initialState);
   const [signUpState, signUpAction, signUpPending] = useActionState(signUp, initialState);
+  const searchParams = useSearchParams();
+  const linkError = searchParams.get("error");
 
   const action = mode === "login" ? signInAction : signUpAction;
   const state = mode === "login" ? signInState : signUpState;
@@ -40,6 +51,24 @@ export default function LoginPage() {
       </div>
 
       <form action={action} className="space-y-4">
+        {mode === "signup" && (
+          <>
+            <div className="flex gap-3">
+              <input name="firstName" required placeholder="Nombre" className="input" autoComplete="given-name" />
+              <input name="lastName" required placeholder="Apellido" className="input" autoComplete="family-name" />
+            </div>
+            <input
+              name="age"
+              type="number"
+              required
+              min={18}
+              max={100}
+              placeholder="Edad"
+              className="input"
+              autoComplete="off"
+            />
+          </>
+        )}
         <input name="email" type="email" required placeholder="Email" className="input" autoComplete="email" />
         <input
           name="password"
@@ -51,9 +80,12 @@ export default function LoginPage() {
           autoComplete={mode === "login" ? "current-password" : "new-password"}
         />
 
+        {linkError && !state.error && <p className="text-sm text-red-400">{linkError}</p>}
         {state.error && <p className="text-sm text-red-400">{state.error}</p>}
-        {mode === "signup" && !state.error && signUpState !== initialState && (
-          <p className="text-sm text-accent">Cuenta creada. Si tu proyecto pide confirmar email, revisá tu bandeja.</p>
+        {mode === "signup" && state.success && (
+          <p className="text-sm text-accent">
+            Te mandamos un email a tu correo para confirmar la cuenta. Revisá tu bandeja (y spam).
+          </p>
         )}
 
         <button type="submit" disabled={pending} className="btn-primary w-full disabled:opacity-60">
