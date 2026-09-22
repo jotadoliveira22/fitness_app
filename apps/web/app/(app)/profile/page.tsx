@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getToday, getOwnPreferences } from "@fitness-app/api";
+import { getToday, getOwnPreferences, getLatestMeasurement, insertMeasurement, getActiveProgram } from "@fitness-app/api";
 import { getTrainingStats } from "@/lib/training-stats";
 import { IconStat } from "@/components/IconStat";
 
@@ -10,6 +10,23 @@ async function signOut() {
   await supabase.auth.signOut();
   const { redirect } = await import("next/navigation");
   redirect("/login");
+}
+
+async function saveBodyFat(formData: FormData) {
+  "use server";
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const value = Number(formData.get("bodyFatPct"));
+  if (!value || value <= 0 || value > 70) return;
+
+  await insertMeasurement(supabase, user.id, { bodyFatPct: value });
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath("/profile");
 }
 
 const SETTINGS_ROWS = [
@@ -25,15 +42,25 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [today, prefs, stats] = await Promise.all([
+  const [today, prefs, stats, latestMeasurement, activeProgram] = await Promise.all([
     getToday(supabase, user.id),
     getOwnPreferences(supabase, user.id).catch(() => null),
     getTrainingStats(supabase, user.id),
+    getLatestMeasurement(supabase, user.id).catch(() => null),
+    getActiveProgram(supabase, user.id).catch(() => null),
   ]);
   const profile = today.profile;
 
   const heightM = profile?.heightCm ? profile.heightCm / 100 : null;
   const bmi = heightM && today.latestWeight ? today.latestWeight.weightKg / (heightM * heightM) : null;
+
+  let planPercent: number | null = null;
+  let planWeek: number | null = null;
+  if (activeProgram) {
+    const daysElapsed = Math.floor((Date.now() - new Date(activeProgram.startedAt).getTime()) / 86400000);
+    planWeek = Math.min(activeProgram.durationWeeks, Math.floor(daysElapsed / 7) + 1);
+    planPercent = Math.min(100, Math.round((planWeek / activeProgram.durationWeeks) * 100));
+  }
 
   return (
     <div className="px-5 pt-8">
@@ -76,11 +103,43 @@ export default async function ProfilePage() {
         </>
       )}
 
+      {activeProgram && planPercent != null && (
+        <>
+          <p className="mb-3 text-sm font-semibold">Mi plan</p>
+          <div className="card mb-6 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">{activeProgram.name}</p>
+              <p className="text-xs text-muted">
+                {activeProgram.durationWeeks} semanas · Semana {planWeek} de {activeProgram.durationWeeks}
+              </p>
+            </div>
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-4 border-accent text-sm font-bold">
+              {planPercent}%
+            </div>
+          </div>
+        </>
+      )}
+
       <p className="mb-3 text-sm font-semibold">Mi cuerpo</p>
-      <div className="mb-6 flex gap-3">
+      <div className="mb-4 flex gap-3">
         <IconStat icon="⚖️" value={today.latestWeight ? today.latestWeight.weightKg : "—"} label="Peso (kg)" />
         <IconStat icon="📏" value={bmi ? bmi.toFixed(1) : "—"} label="IMC" />
+        <IconStat icon="💧" value={latestMeasurement?.bodyFatPct ? `${latestMeasurement.bodyFatPct}%` : "—"} label="Grasa corporal" />
       </div>
+      <form action={saveBodyFat} className="mb-6 flex gap-2">
+        <input
+          name="bodyFatPct"
+          type="number"
+          step="0.1"
+          min="1"
+          max="70"
+          placeholder="Cargar % grasa corporal"
+          className="input flex-1"
+        />
+        <button type="submit" className="btn-secondary px-5 text-sm">
+          Guardar
+        </button>
+      </form>
 
       <p className="mb-3 text-sm font-semibold">Configuración</p>
       <div className="card mb-6 divide-y divide-border">

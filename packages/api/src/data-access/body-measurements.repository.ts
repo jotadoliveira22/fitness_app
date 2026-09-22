@@ -9,6 +9,7 @@ export interface BodyMeasurementRecord {
   chestCm: number | null;
   armCm: number | null;
   thighCm: number | null;
+  bodyFatPct: number | null;
   otherLabel: string | null;
   otherValue: number | null;
 }
@@ -21,11 +22,13 @@ interface BodyMeasurementRow {
   chest_cm: number | null;
   arm_cm: number | null;
   thigh_cm: number | null;
+  body_fat_pct: number | null;
   other_label: string | null;
   other_value: number | null;
 }
 
-const COLUMNS = "id, measured_at, waist_cm, hips_cm, chest_cm, arm_cm, thigh_cm, other_label, other_value";
+const COLUMNS =
+  "id, measured_at, waist_cm, hips_cm, chest_cm, arm_cm, thigh_cm, body_fat_pct, other_label, other_value";
 
 function toRecord(row: BodyMeasurementRow): BodyMeasurementRecord {
   return {
@@ -36,6 +39,7 @@ function toRecord(row: BodyMeasurementRow): BodyMeasurementRecord {
     chestCm: row.chest_cm,
     armCm: row.arm_cm,
     thighCm: row.thigh_cm,
+    bodyFatPct: row.body_fat_pct,
     otherLabel: row.other_label,
     otherValue: row.other_value,
   };
@@ -48,6 +52,7 @@ export interface InsertMeasurementInput {
   chestCm?: number;
   armCm?: number;
   thighCm?: number;
+  bodyFatPct?: number;
   otherLabel?: string;
   otherValue?: number;
 }
@@ -67,6 +72,7 @@ export async function insertMeasurement(
       chest_cm: input.chestCm ?? null,
       arm_cm: input.armCm ?? null,
       thigh_cm: input.thighCm ?? null,
+      body_fat_pct: input.bodyFatPct ?? null,
       other_label: input.otherLabel ?? null,
       other_value: input.otherValue ?? null,
     })
@@ -92,4 +98,21 @@ export async function listMeasurementsSince(
 
   if (error) throw new DataAccessError("No se pudieron obtener las medidas corporales", error);
   return (data as BodyMeasurementRow[]).map(toRecord);
+}
+
+export async function getLatestMeasurement(
+  client: SupabaseClient,
+  userId: string,
+): Promise<BodyMeasurementRecord | null> {
+  const { data, error } = await client
+    .from("body_measurements")
+    .select(COLUMNS)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .order("measured_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<BodyMeasurementRow>();
+
+  if (error) throw new DataAccessError("No se pudo obtener la última medida corporal", error);
+  return data ? toRecord(data) : null;
 }

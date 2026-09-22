@@ -96,7 +96,11 @@ export type { MealCandidateItem } from "./engines/nutrition/foods-matcher.js";
 
 // Progress + Fasting
 export { listWeightLogsSince } from "./data-access/weight-logs.repository.js";
-export { type BodyMeasurementRecord } from "./data-access/body-measurements.repository.js";
+export {
+  insertMeasurement,
+  getLatestMeasurement,
+  type BodyMeasurementRecord,
+} from "./data-access/body-measurements.repository.js";
 export {
   getPhotoById,
   deletePhoto,

@@ -1,5 +1,14 @@
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { OnboardingCarousel } from "@/components/OnboardingCarousel";
 
-export default function RootPage() {
-  redirect("/home");
+export default async function RootPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) redirect("/home");
+
+  return <OnboardingCarousel />;
 }

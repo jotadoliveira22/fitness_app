@@ -16,10 +16,10 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<"login" | "signup">(searchParams.get("mode") === "signup" ? "signup" : "login");
   const [signInState, signInAction, signInPending] = useActionState(signIn, initialState);
   const [signUpState, signUpAction, signUpPending] = useActionState(signUp, initialState);
-  const searchParams = useSearchParams();
   const linkError = searchParams.get("error");
 
   const action = mode === "login" ? signInAction : signUpAction;

@@ -12,6 +12,7 @@ export interface GenerateInitialProgramParams {
   experienceLevel: ExperienceLevel;
   trainingDaysPerWeek: number;
   preferredTrainingDays: number[];
+  durationWeeks?: number;
 }
 
 function nextDateForWeekday(weekday: number): string {
@@ -36,7 +37,7 @@ export async function generateInitialProgram(
   const template = getWeeklyTemplate(params.trainingDaysPerWeek);
   if (template.length === 0) return null;
 
-  const program = await insertProgram(client, userId, "Programa inicial");
+  const program = await insertProgram(client, userId, "Programa inicial", params.durationWeeks);
   const week = await insertTrainingWeek(client, program.id, 1);
 
   const assumeFullEquipment = params.trainingContext === "gym";

@@ -7,6 +7,8 @@ export interface TrainingProgramRecord {
   userId: string;
   name: string;
   status: ProgramStatus;
+  durationWeeks: number;
+  startedAt: string;
 }
 
 interface TrainingProgramRow {
@@ -14,22 +16,32 @@ interface TrainingProgramRow {
   user_id: string;
   name: string;
   status: ProgramStatus;
+  duration_weeks: number;
+  started_at: string;
 }
 
-const COLUMNS = "id, user_id, name, status";
+const COLUMNS = "id, user_id, name, status, duration_weeks, started_at";
 
 function toRecord(row: TrainingProgramRow): TrainingProgramRecord {
-  return { id: row.id, userId: row.user_id, name: row.name, status: row.status };
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    status: row.status,
+    durationWeeks: row.duration_weeks,
+    startedAt: row.started_at,
+  };
 }
 
 export async function insertProgram(
   client: SupabaseClient,
   userId: string,
   name: string,
+  durationWeeks = 8,
 ): Promise<TrainingProgramRecord> {
   const { data, error } = await client
     .from("training_programs")
-    .insert({ user_id: userId, name })
+    .insert({ user_id: userId, name, duration_weeks: durationWeeks })
     .select(COLUMNS)
     .single<TrainingProgramRow>();
 
