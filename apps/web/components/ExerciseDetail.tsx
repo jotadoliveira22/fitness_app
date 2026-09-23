@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ExerciseRecord, RoutineRecord } from "@fitness-app/api";
 import type { TrainingContext } from "@fitness-app/shared";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
-import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
+import { MUSCLE_GROUP_LABELS } from "@/lib/labels";
 import { ChevronRightIcon, FlameIcon, ClockIcon, PlusIcon, XIcon } from "@/components/icons";
 
 const MINUTE_PRESETS = [10, 15, 20, 30, 45, 60];
@@ -67,7 +67,7 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
 
       <div className="relative z-10 flex min-h-dvh flex-col justify-end px-5 pb-28 pt-10">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-accent">
-          {MUSCLE_GROUP_LABELS[exercise.primaryMuscleGroup]} · {TRAINING_CONTEXT_LABELS[exercise.modalities[0] ?? "other"]}
+          {MUSCLE_GROUP_LABELS[exercise.primaryMuscleGroup]}
         </p>
         <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight">{exercise.name}</h1>
 
