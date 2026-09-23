@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, DumbbellIcon, MealIcon, ChartBarIcon } from "./icons";
+import { HomeFilledIcon, DumbbellFilledIcon, NutritionFilledIcon, ActivityFilledIcon } from "./icons";
 import { QuickAddSheet } from "./QuickAddSheet";
 
 const LEFT_ITEMS = [
-  { href: "/home", label: "Inicio", icon: HomeIcon },
-  { href: "/workouts", label: "Entrenos", icon: DumbbellIcon },
+  { href: "/home", label: "Inicio", icon: HomeFilledIcon },
+  { href: "/workouts", label: "Entrenos", icon: DumbbellFilledIcon },
 ];
 
 const RIGHT_ITEMS = [
-  { href: "/nutrition", label: "Nutrición", icon: MealIcon },
-  { href: "/progress", label: "Actividad", icon: ChartBarIcon },
+  { href: "/nutrition", label: "Nutrición", icon: NutritionFilledIcon },
+  { href: "/progress", label: "Actividad", icon: ActivityFilledIcon },
 ];
 
-function NavLink({ href, label, icon: Icon, active }: { href: string; label: string; icon: typeof HomeIcon; active: boolean }) {
+function NavLink({ href, label, icon: Icon, active }: { href: string; label: string; icon: typeof HomeFilledIcon; active: boolean }) {
   return (
     <Link
       href={href}

@@ -228,3 +228,79 @@ export function ChevronRightIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/**
+ * Set de íconos "filled" (estilo sólido, provisto por el usuario) para la
+ * barra de navegación inferior. El color de fondo asumido para los
+ * "recortes" internos es el de la barra (surface, #161718): estos íconos
+ * están pensados para usarse solo ahí, no sobre cualquier fondo.
+ */
+const NAV_CUTOUT = "#161718";
+
+export function PlusThickIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M11 3a2 2 0 0 1 2 2v5h5a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-5v5a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-5H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h5V5a2 2 0 0 1 2-2z" />
+    </svg>
+  );
+}
+
+export function HomeFilledIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 3.2a1.8 1.8 0 0 1 1.18.44l7.5 6.5a1.6 1.6 0 0 1-1.05 2.8h-.13V18a3 3 0 0 1-3 3h-1.5v-4.5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2V21H7.5a3 3 0 0 1-3-3v-5.06h-.13a1.6 1.6 0 0 1-1.05-2.8l7.5-6.5A1.8 1.8 0 0 1 12 3.2z" />
+    </svg>
+  );
+}
+
+export function DumbbellFilledIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <g transform="rotate(45 12 12)">
+        <rect x="9.3" y="1.5" width="5.4" height="7.5" rx="2.2" />
+        <rect x="9.3" y="15" width="5.4" height="7.5" rx="2.2" />
+        <rect x="10.4" y="8.7" width="3.2" height="6.6" rx="1.2" />
+      </g>
+    </svg>
+  );
+}
+
+export function NutritionFilledIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 8.3c-1-1.3-2.6-1.9-4.1-1.5C5.5 7.4 4 9.4 4 12c0 4 2.7 8.3 5.3 8.3.9 0 1.4-.4 2.7-.4s1.8.4 2.7.4C17.3 20.3 20 16 20 12c0-2.6-1.5-4.6-3.9-5.2-1.5-.4-3.1.2-4.1 1.5z" />
+      <path
+        d="M12 8V4.3c1.4 0 2.4-.9 2.9-1.8"
+        stroke="currentColor"
+        strokeWidth={1.4}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <path
+        d="M2.2 12h5.6l1.3-2.4 1.7 4.4 1.4-2.8 1.1 0.8h8.5"
+        stroke={NAV_CUTOUT}
+        strokeWidth={1.8}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ActivityFilledIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <rect x="2" y="2" width="20" height="20" rx="7" />
+      <circle cx="18" cy="6" r="3" fill={NAV_CUTOUT} />
+      <path
+        d="M6 15.5l3.3-4.2 3.1 2.6L16 9.2"
+        stroke={NAV_CUTOUT}
+        strokeWidth={1.8}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { logWeightAction, logCheckinAction, toggleFastAction } from "@/app/(app)/quick-add/actions";
-import { PlusIcon, XIcon, DumbbellIcon, ScaleIcon, LeafIcon, ClockIcon, MealIcon } from "@/components/icons";
+import { PlusIcon, PlusThickIcon, XIcon, DumbbellIcon, ScaleIcon, LeafIcon, ClockIcon, MealIcon } from "@/components/icons";
 
 type Panel = "menu" | "weight" | "checkin";
 
@@ -68,7 +68,7 @@ export function QuickAddSheet() {
         aria-label="Agregar"
         className="relative z-20 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-4 border-surface bg-accent text-black shadow-lg shadow-accent/40"
       >
-        <PlusIcon className="h-7 w-7" />
+        <PlusThickIcon className="h-7 w-7" />
       </button>
 
       {open && (
