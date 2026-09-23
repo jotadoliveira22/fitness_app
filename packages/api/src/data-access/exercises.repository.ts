@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ExperienceLevel, MovementPattern, MuscleGroup, TrainingContext } from "@fitness-app/shared";
+import type { ExerciseTrackingMode, ExperienceLevel, MovementPattern, MuscleGroup, TrainingContext } from "@fitness-app/shared";
 import { DataAccessError } from "./errors.js";
 
 export interface ExerciseRecord {
@@ -15,6 +15,7 @@ export interface ExerciseRecord {
   mediaUrl: string | null;
   videoUrl: string | null;
   caloriesPer30Min: number | null;
+  trackingMode: ExerciseTrackingMode;
 }
 
 interface ExerciseRow {
@@ -29,10 +30,11 @@ interface ExerciseRow {
   media_url: string | null;
   video_url: string | null;
   calories_per_30min: number | null;
+  tracking_mode: ExerciseTrackingMode;
 }
 
 const EXERCISE_COLUMNS =
-  "id, name, modalities, primary_muscle_group, secondary_muscles, difficulty, movement_pattern, instructions, media_url, video_url, calories_per_30min";
+  "id, name, modalities, primary_muscle_group, secondary_muscles, difficulty, movement_pattern, instructions, media_url, video_url, calories_per_30min, tracking_mode";
 
 const DIFFICULTY_RANK: Record<ExperienceLevel, number> = {
   beginner: 0,
@@ -74,6 +76,7 @@ async function attachEquipment(
     mediaUrl: row.media_url,
     videoUrl: row.video_url,
     caloriesPer30Min: row.calories_per_30min,
+    trackingMode: row.tracking_mode,
   }));
 }
 

@@ -10,7 +10,6 @@ import { ChevronRightIcon, FlameIcon, ClockIcon, PlusIcon, XIcon } from "@/compo
 
 const MINUTE_PRESETS = [10, 15, 20, 30, 45, 60];
 const REST_PRESETS = [30, 45, 60, 90, 120];
-const CARDIO_MACHINES = ["stationary_bike", "treadmill", "elliptical", "rowing_machine"];
 
 interface ExerciseDetailProps {
   exercise: ExerciseRecord;
@@ -20,9 +19,8 @@ interface ExerciseDetailProps {
 
 export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction }: ExerciseDetailProps) {
   const router = useRouter();
-  const defaultMode = exercise.requiredEquipment.some((eq) => CARDIO_MACHINES.includes(eq)) ? "time" : "reps";
+  const mode = exercise.trackingMode;
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [mode, setMode] = useState<"reps" | "time">(defaultMode);
   const [minutes, setMinutes] = useState(30);
   const [targetSets, setTargetSets] = useState(3);
   const [targetReps, setTargetReps] = useState("15");
@@ -117,27 +115,6 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
               <p className="font-display text-lg font-extrabold">Agregar a rutina</p>
               <button type="button" onClick={() => setSheetOpen(false)}>
                 <XIcon className="h-5 w-5 text-muted" />
-              </button>
-            </div>
-
-            <div className="mb-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setMode("reps")}
-                className={`flex-1 rounded-full py-2 text-xs font-bold ${
-                  mode === "reps" ? "bg-accent text-black" : "bg-surface-raised text-muted"
-                }`}
-              >
-                Series y repeticiones
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("time")}
-                className={`flex-1 rounded-full py-2 text-xs font-bold ${
-                  mode === "time" ? "bg-accent text-black" : "bg-surface-raised text-muted"
-                }`}
-              >
-                Tiempo
               </button>
             </div>
 
