@@ -39,9 +39,9 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
     fd.set("exerciseId", exercise.id);
     fd.set("mode", mode);
     fd.set("targetSets", String(targetSets));
-    fd.set("restSeconds", String(restSeconds));
     if (mode === "reps") {
       fd.set("targetReps", targetReps);
+      fd.set("restSeconds", String(restSeconds));
     } else {
       fd.set("minutes", String(minutes));
     }
@@ -178,26 +178,30 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
               </>
             )}
 
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
-              Descanso entre series
-            </label>
-            <p className="mb-2 text-[11px] text-muted">
-              Se usa como temporizador con alarma sonora al entrenar esta rutina.
-            </p>
-            <div className="mb-5 flex flex-wrap gap-2">
-              {REST_PRESETS.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRestSeconds(r)}
-                  className={`rounded-full px-3.5 py-2 text-xs font-semibold ${
-                    restSeconds === r ? "bg-accent text-black" : "bg-surface-raised text-muted"
-                  }`}
-                >
-                  {r}s
-                </button>
-              ))}
-            </div>
+            {mode === "reps" && (
+              <>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  Descanso entre series
+                </label>
+                <p className="mb-2 text-[11px] text-muted">
+                  Se usa como temporizador con alarma sonora al entrenar esta rutina.
+                </p>
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {REST_PRESETS.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setRestSeconds(r)}
+                      className={`rounded-full px-3.5 py-2 text-xs font-semibold ${
+                        restSeconds === r ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                      }`}
+                    >
+                      {r}s
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
               ¿A qué rutina?
