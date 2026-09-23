@@ -340,7 +340,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
         ejercicios={
           <div className="space-y-2">
             {catalog.map((ex) => (
-              <div key={ex.id} className="card flex items-center gap-3">
+              <Link key={ex.id} href={`/workouts/exercise/${ex.id}`} className="card flex items-center gap-3">
                 <ExerciseThumb exercise={ex} className="h-12 w-12" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{ex.name}</p>
@@ -348,7 +348,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                     {MUSCLE_GROUP_LABELS[ex.primaryMuscleGroup]} · {ex.difficulty}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         }
@@ -389,7 +389,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
           <div className="space-y-2">
             <p className="mb-2 text-xs text-muted">Catálogo completo de ejercicios disponibles.</p>
             {catalog.map((ex) => (
-              <div key={ex.id} className="card flex gap-3">
+              <Link key={ex.id} href={`/workouts/exercise/${ex.id}`} className="card flex gap-3">
                 <ExerciseThumb exercise={ex} className="h-12 w-12" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
@@ -404,7 +404,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                     ))}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         }

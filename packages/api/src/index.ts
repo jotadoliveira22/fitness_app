@@ -77,6 +77,7 @@ export {
   getRoutineById,
   getRoutineExercises,
   insertRoutine,
+  addExerciseToRoutine,
   deleteRoutine,
   type RoutineRecord,
   type RoutineExerciseRecord,

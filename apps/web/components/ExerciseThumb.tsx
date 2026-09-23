@@ -6,19 +6,18 @@ import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { DumbbellIcon } from "@/components/icons";
 
 interface ExerciseThumbProps {
-  exercise: Pick<ExerciseRecord, "modalities">;
+  exercise: Pick<ExerciseRecord, "modalities"> & { mediaUrl?: string | null };
   className?: string;
 }
 
 /**
- * Imagen referencial del ejercicio: se deriva de su modalidad real
- * (exercise.modalities) reutilizando el mismo set de fotos ya verificado
- * para las tarjetas de entrenamiento, en vez de inventar una foto por
- * ejercicio que no tenemos. Si la imagen no carga, cae a un ícono.
+ * Imagen del ejercicio: usa la foto propia (exercise.mediaUrl) cuando ya
+ * se cargó una para ese ejercicio puntual; si no, cae a una foto genérica
+ * derivada de su modalidad real, y si tampoco carga, a un ícono.
  */
 export function ExerciseThumb({ exercise, className = "h-11 w-11" }: ExerciseThumbProps) {
   const [errored, setErrored] = useState(false);
-  const src = getWorkoutPhoto(exercise.modalities[0]);
+  const src = exercise.mediaUrl ?? getWorkoutPhoto(exercise.modalities[0]);
 
   if (errored) {
     return (

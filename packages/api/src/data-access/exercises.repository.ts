@@ -12,6 +12,9 @@ export interface ExerciseRecord {
   movementPattern: MovementPattern;
   instructions: string | null;
   requiredEquipment: string[];
+  mediaUrl: string | null;
+  videoUrl: string | null;
+  caloriesPer30Min: number | null;
 }
 
 interface ExerciseRow {
@@ -23,10 +26,13 @@ interface ExerciseRow {
   difficulty: ExperienceLevel;
   movement_pattern: MovementPattern;
   instructions: string | null;
+  media_url: string | null;
+  video_url: string | null;
+  calories_per_30min: number | null;
 }
 
 const EXERCISE_COLUMNS =
-  "id, name, modalities, primary_muscle_group, secondary_muscles, difficulty, movement_pattern, instructions";
+  "id, name, modalities, primary_muscle_group, secondary_muscles, difficulty, movement_pattern, instructions, media_url, video_url, calories_per_30min";
 
 const DIFFICULTY_RANK: Record<ExperienceLevel, number> = {
   beginner: 0,
@@ -65,6 +71,9 @@ async function attachEquipment(
     movementPattern: row.movement_pattern,
     instructions: row.instructions,
     requiredEquipment: equipmentByExercise.get(row.id) ?? [],
+    mediaUrl: row.media_url,
+    videoUrl: row.video_url,
+    caloriesPer30Min: row.calories_per_30min,
   }));
 }
 

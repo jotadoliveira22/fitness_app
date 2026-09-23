@@ -173,6 +173,34 @@ export async function insertRoutine(
   return routine;
 }
 
+export async function addExerciseToRoutine(
+  client: SupabaseClient,
+  routineId: string,
+  exercise: InsertRoutineExerciseInput,
+): Promise<void> {
+  const { data: existing, error: countError } = await client
+    .from("routine_exercises")
+    .select("order_index")
+    .eq("routine_id", routineId)
+    .order("order_index", { ascending: false })
+    .limit(1);
+  if (countError) throw new DataAccessError("No se pudo revisar la rutina", countError);
+
+  const nextOrderIndex = ((existing as Array<{ order_index: number }>)[0]?.order_index ?? -1) + 1;
+
+  const { error } = await client.from("routine_exercises").insert({
+    routine_id: routineId,
+    exercise_id: exercise.exerciseId,
+    order_index: nextOrderIndex,
+    target_sets: exercise.targetSets,
+    target_reps: exercise.targetReps ?? null,
+    target_weight_kg: exercise.targetWeightKg ?? null,
+    target_duration_seconds: exercise.targetDurationSeconds ?? null,
+    rest_seconds: exercise.restSeconds ?? null,
+  });
+  if (error) throw new DataAccessError("No se pudo agregar el ejercicio a la rutina", error);
+}
+
 export async function deleteRoutine(client: SupabaseClient, routineId: string): Promise<void> {
   const { error } = await client
     .from("routines")

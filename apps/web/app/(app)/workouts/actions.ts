@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { TrainingContext } from "@fitness-app/shared";
 import {
   insertRoutine,
+  addExerciseToRoutine,
   deleteRoutine,
   assignRoutineToWeekday,
   clearWeekday,
@@ -131,6 +132,43 @@ export async function startScheduledRoutineAction(formData: FormData) {
   revalidatePath("/workouts");
   revalidatePath("/home");
   redirect(`/workouts/session/${session.id}`);
+}
+
+export async function addExerciseByMinutesAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const exerciseId = String(formData.get("exerciseId") ?? "");
+  const minutes = Number(formData.get("minutes"));
+  const routineId = String(formData.get("routineId") ?? "");
+  const newRoutineName = String(formData.get("newRoutineName") ?? "").trim();
+  const trainingContext = String(formData.get("trainingContext") ?? "") as TrainingContext;
+  if (!exerciseId || !minutes || minutes <= 0) return;
+
+  const exerciseInput = {
+    exerciseId,
+    orderIndex: 0,
+    targetSets: 1,
+    targetDurationSeconds: minutes * 60,
+  };
+
+  if (routineId) {
+    await addExerciseToRoutine(supabase, routineId, exerciseInput);
+  } else {
+    if (!newRoutineName || !trainingContext) return;
+    await insertRoutine(supabase, {
+      userId: user.id,
+      name: newRoutineName,
+      trainingContext,
+      exercises: [exerciseInput],
+    });
+  }
+
+  revalidatePath("/workouts");
+  redirect("/workouts?tab=rutinas");
 }
 
 export interface LoggedSetInput {
