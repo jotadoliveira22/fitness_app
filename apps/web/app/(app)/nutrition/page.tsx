@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getToday, getLogsForDate } from "@fitness-app/api";
 import { ProgressRing } from "@/components/ProgressRing";
 import { IconStat } from "@/components/IconStat";
+import { AppHeader } from "@/components/AppHeader";
 import { DumbbellIcon, GrainIcon, DropletIcon, MealIcon } from "@/components/icons";
 
 const MEAL_LABELS: Record<string, string> = {
@@ -28,7 +29,8 @@ export default async function NutritionPage() {
   const remaining = targets?.dailyCalories ? Math.max(0, targets.dailyCalories - consumedToday.calories) : null;
 
   return (
-    <div className="px-5 pt-8">
+    <div className="px-5 pt-6">
+      <AppHeader initial={today.profile?.displayName ?? user.email ?? "?"} />
       <h1 className="mb-1 font-display text-2xl font-extrabold">
         Tu Nutrición <span className="text-accent">Hoy</span>
       </h1>

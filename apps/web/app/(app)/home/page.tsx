@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getToday, getOwnPreferences, getActiveProgram } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 import { ProgressRing } from "@/components/ProgressRing";
+import { AppHeader } from "@/components/AppHeader";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { computePlanProgress } from "@/lib/plan-progress";
-import { DumbbellIcon, ClockIcon, FlameIcon, MealIcon, LeafIcon, ChartBarIcon, BellIcon } from "@/components/icons";
+import { DumbbellIcon, ClockIcon, FlameIcon, MealIcon, LeafIcon, ChartBarIcon } from "@/components/icons";
 
 const QUOTES = [
   "Cuerpo fuerte. Mente clara. Vida extraordinaria.",
@@ -53,21 +53,7 @@ export default async function HomePage() {
 
   return (
     <div className="px-5 pt-6">
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Image src="/brand/sumiva-isotype.png" alt="" width={26} height={26} />
-          <span className="font-display text-sm font-extrabold tracking-wide">SUMIVA</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface">
-            <BellIcon className="h-4 w-4" />
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
-          </div>
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-raised text-xs font-bold">
-            {(today.profile?.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
-          </div>
-        </div>
-      </div>
+      <AppHeader initial={today.profile?.displayName ?? user.email ?? "?"} />
 
       <div className="mb-5 flex items-start justify-between">
         <div>

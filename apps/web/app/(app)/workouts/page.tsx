@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import {
   getToday,
   getOwnPreferences,
@@ -23,8 +22,9 @@ import { RoutinesManager } from "@/components/RoutinesManager";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { BodyMuscleMap } from "@/components/BodyMuscleMap";
 import { ProgressRing } from "@/components/ProgressRing";
+import { AppHeader } from "@/components/AppHeader";
 import { computeMuscleVolume } from "@/lib/muscle-volume";
-import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon, PlusIcon } from "@/components/icons";
+import { ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon, PlusIcon } from "@/components/icons";
 import {
   createRoutineAction,
   deleteRoutineAction,
@@ -128,20 +128,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
 
   return (
     <div className="px-5 pt-6 pb-4">
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Image src="/brand/sumiva-isotype.png" alt="" width={26} height={26} />
-          <span className="font-display text-sm font-extrabold tracking-wide">SUMIVA</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-surface">
-            <BellIcon className="h-4 w-4" />
-          </div>
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-raised text-xs font-bold">
-            {(today.profile?.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
-          </div>
-        </div>
-      </div>
+      <AppHeader initial={today.profile?.displayName ?? user.email ?? "?"} />
 
       <h1 className="mb-1 font-display text-2xl font-extrabold">Entrenamiento</h1>
       <p className="mb-5 text-xs text-muted">Disciplina hoy, resultados mañana.</p>

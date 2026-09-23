@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, DumbbellIcon, MealIcon, ChartBarIcon, UserIcon } from "./icons";
+import { HomeIcon, DumbbellIcon, MealIcon, ChartBarIcon } from "./icons";
 import { QuickAddSheet } from "./QuickAddSheet";
 
 const LEFT_ITEMS = [
@@ -13,7 +13,6 @@ const LEFT_ITEMS = [
 const RIGHT_ITEMS = [
   { href: "/nutrition", label: "Nutrición", icon: MealIcon },
   { href: "/progress", label: "Actividad", icon: ChartBarIcon },
-  { href: "/profile", label: "Perfil", icon: UserIcon },
 ];
 
 function NavLink({ href, label, icon: Icon, active }: { href: string; label: string; icon: typeof HomeIcon; active: boolean }) {

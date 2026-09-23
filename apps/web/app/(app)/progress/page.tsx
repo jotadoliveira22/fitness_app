@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getToday, listWeightLogsSince, listPhotosSince, getSignedPhotoUrl } from "@fitness-app/api";
 import { IconStat } from "@/components/IconStat";
 import { LineChart } from "@/components/LineChart";
+import { AppHeader } from "@/components/AppHeader";
 import { getTrainingStats } from "@/lib/training-stats";
 import { DumbbellIcon, FlameIcon, CalendarIcon, TargetIcon } from "@/components/icons";
 
@@ -37,7 +38,8 @@ export default async function ProgressPage() {
   );
 
   return (
-    <div className="px-5 pt-8">
+    <div className="px-5 pt-6">
+      <AppHeader initial={today.profile?.displayName ?? user.email ?? "?"} />
       <h1 className="mb-1 font-display text-2xl font-extrabold">Progreso</h1>
       <p className="mb-6 text-xs text-muted">Disciplina hoy, mejores resultados mañana.</p>
 
