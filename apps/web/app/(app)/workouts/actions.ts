@@ -2,17 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { TrainingContext } from "@fitness-app/shared";
+import type { TrainingContext, AdaptationLocation, OnboardingInput } from "@fitness-app/shared";
 import {
   insertRoutine,
   addExerciseToRoutine,
   deleteRoutine,
+  removeExerciseFromRoutine,
+  reorderRoutineExercises,
+  getRoutineExercises,
   assignRoutineToWeekday,
   clearWeekday,
   materializeRoutineForDate,
   setUserEquipmentForContext,
   updateOwnPreferences,
   completeWorkout,
+  skipSession,
+  replaceExercise,
+  proposeAdaptation,
+  applyAdaptation,
+  saveProfileSetup,
 } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -212,4 +220,134 @@ export async function completeWorkoutAction(sessionId: string, sets: LoggedSetIn
   revalidatePath("/home");
   revalidatePath("/progress");
   redirect("/workouts");
+}
+
+export async function removeRoutineExerciseAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const routineExerciseId = String(formData.get("routineExerciseId") ?? "");
+  const routineId = String(formData.get("routineId") ?? "");
+  if (!routineExerciseId || !routineId) return;
+
+  await removeExerciseFromRoutine(supabase, routineExerciseId);
+  revalidatePath(`/workouts/routine/${routineId}`);
+  revalidatePath("/workouts");
+}
+
+export async function moveRoutineExerciseAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const routineId = String(formData.get("routineId") ?? "");
+  const routineExerciseId = String(formData.get("routineExerciseId") ?? "");
+  const direction = String(formData.get("direction") ?? "");
+  if (!routineId || !routineExerciseId || (direction !== "up" && direction !== "down")) return;
+
+  const exercises = await getRoutineExercises(supabase, routineId);
+  const ids = exercises.map((e) => e.id);
+  const index = ids.indexOf(routineExerciseId);
+  if (index === -1) return;
+  const swapWith = direction === "up" ? index - 1 : index + 1;
+  if (swapWith < 0 || swapWith >= ids.length) return;
+
+  [ids[index], ids[swapWith]] = [ids[swapWith]!, ids[index]!];
+  await reorderRoutineExercises(supabase, ids);
+  revalidatePath(`/workouts/routine/${routineId}`);
+}
+
+export async function startRoutineNowAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const routineId = String(formData.get("routineId") ?? "");
+  if (!routineId) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const session = await materializeRoutineForDate(supabase, user.id, routineId, today);
+  revalidatePath("/workouts");
+  revalidatePath("/home");
+  redirect(`/workouts/session/${session.id}`);
+}
+
+export async function skipWorkoutAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const sessionId = String(formData.get("sessionId") ?? "");
+  if (!sessionId) return;
+
+  await skipSession(supabase, sessionId);
+  revalidatePath("/workouts");
+  revalidatePath("/home");
+  revalidatePath("/progress");
+  redirect("/workouts");
+}
+
+export async function replaceExerciseAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const sessionId = String(formData.get("sessionId") ?? "");
+  const workoutExerciseId = String(formData.get("workoutExerciseId") ?? "");
+  const newExerciseId = String(formData.get("newExerciseId") ?? "");
+  if (!sessionId || !workoutExerciseId || !newExerciseId) return;
+
+  await replaceExercise(supabase, user.id, sessionId, workoutExerciseId, newExerciseId);
+  revalidatePath(`/workouts/session/${sessionId}`);
+}
+
+export interface AdaptationConstraintsInput {
+  availableMinutes?: number;
+  location?: AdaptationLocation;
+  availableEquipment?: string[];
+  userContext?: string;
+}
+
+export async function proposeAdaptationAction(sessionId: string, constraints: AdaptationConstraintsInput) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado");
+
+  return proposeAdaptation(supabase, user.id, sessionId, constraints);
+}
+
+export async function applyAdaptationAction(sessionId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado");
+
+  await applyAdaptation(supabase, user.id, sessionId);
+  revalidatePath(`/workouts/session/${sessionId}`);
+}
+
+export async function saveOnboardingAction(input: OnboardingInput) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado");
+
+  await saveProfileSetup(supabase, user.id, input);
+  revalidatePath("/home");
+  revalidatePath("/workouts");
 }

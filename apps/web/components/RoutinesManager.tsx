@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { ExerciseRecord, RoutineRecord, RoutineScheduleRecord, EquipmentRecord } from "@fitness-app/api";
 import { TRAINING_CONTEXT_LABELS } from "@/lib/labels";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { RoutineWizard } from "@/components/RoutineWizard";
-import { DumbbellIcon, PlusIcon, TrashIcon, XIcon } from "@/components/icons";
+import { DumbbellIcon, PlusIcon, TrashIcon, XIcon, ChevronRightIcon, PlayIcon } from "@/components/icons";
 
 const WEEKDAYS: { value: number; label: string; short: string }[] = [
   { value: 1, label: "Lunes", short: "L" },
@@ -32,6 +33,7 @@ interface RoutinesManagerProps {
   deleteRoutineAction: (formData: FormData) => Promise<void>;
   assignScheduleAction: (formData: FormData) => Promise<void>;
   saveEquipmentAction: (formData: FormData) => Promise<void>;
+  startRoutineNowAction: (formData: FormData) => Promise<void>;
 }
 
 export function RoutinesManager({
@@ -49,6 +51,7 @@ export function RoutinesManager({
   deleteRoutineAction,
   assignScheduleAction,
   saveEquipmentAction,
+  startRoutineNowAction,
 }: RoutinesManagerProps) {
   const [creating, setCreating] = useState(autoOpenCreate);
   const [wizardKey, setWizardKey] = useState(0);
@@ -142,18 +145,31 @@ export function RoutinesManager({
         <div className="space-y-2">
           {routines.map((routine) => (
             <div key={routine.id} className="card flex items-center gap-3">
-              <img
-                src={getWorkoutPhoto(routine.trainingContext)}
-                alt=""
-                className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{routine.name}</p>
-                <p className="text-xs text-muted">
-                  {TRAINING_CONTEXT_LABELS[routine.trainingContext]}
-                  {exerciseCounts[routine.id] ? ` · ${exerciseCounts[routine.id]} ejercicios` : ""}
-                </p>
-              </div>
+              <Link href={`/workouts/routine/${routine.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                <img
+                  src={getWorkoutPhoto(routine.trainingContext)}
+                  alt=""
+                  className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{routine.name}</p>
+                  <p className="text-xs text-muted">
+                    {TRAINING_CONTEXT_LABELS[routine.trainingContext]}
+                    {exerciseCounts[routine.id] ? ` · ${exerciseCounts[routine.id]} ejercicios` : ""}
+                  </p>
+                </div>
+                <ChevronRightIcon className="h-4 w-4 flex-shrink-0 text-muted" />
+              </Link>
+              <form action={startRoutineNowAction} className="flex-shrink-0">
+                <input type="hidden" name="routineId" value={routine.id} />
+                <button
+                  type="submit"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-black"
+                  aria-label="Iniciar ahora"
+                >
+                  <PlayIcon className="h-3.5 w-3.5" />
+                </button>
+              </form>
               <form action={deleteRoutineAction} className="flex-shrink-0">
                 <input type="hidden" name="routineId" value={routine.id} />
                 <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised">

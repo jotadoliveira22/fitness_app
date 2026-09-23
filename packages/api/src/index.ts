@@ -59,6 +59,7 @@ export {
   getSessionById,
   getSessionForDate,
   listSessionsInRange,
+  skipSession,
   type WorkoutSessionRecord,
 } from "./data-access/workout-sessions.repository.js";
 export { getForSession as getWorkoutExercisesForSession, type WorkoutExerciseRecord } from "./data-access/workout-exercises.repository.js";
@@ -79,6 +80,8 @@ export {
   insertRoutine,
   addExerciseToRoutine,
   deleteRoutine,
+  removeExerciseFromRoutine,
+  reorderRoutineExercises,
   type RoutineRecord,
   type RoutineExerciseRecord,
   type InsertRoutineInput,

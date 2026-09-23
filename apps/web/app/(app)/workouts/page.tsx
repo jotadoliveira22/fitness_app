@@ -32,6 +32,8 @@ import {
   assignScheduleAction,
   startScheduledRoutineAction,
   saveEquipmentAction,
+  startRoutineNowAction,
+  skipWorkoutAction,
 } from "./actions";
 
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -175,12 +177,23 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                           Completado hoy ✓
                         </span>
                       ) : (
-                        <Link
-                          href={`/workouts/session/${today.workout.sessionId}`}
-                          className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black"
-                        >
-                          Iniciar entrenamiento →
-                        </Link>
+                        <div className="mt-4 flex items-center gap-2">
+                          <Link
+                            href={`/workouts/session/${today.workout.sessionId}`}
+                            className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black"
+                          >
+                            Iniciar entrenamiento →
+                          </Link>
+                          <form action={skipWorkoutAction}>
+                            <input type="hidden" name="sessionId" value={today.workout.sessionId} />
+                            <button
+                              type="submit"
+                              className="rounded-full bg-surface-raised px-4 py-2.5 text-xs font-semibold text-muted"
+                            >
+                              Saltar
+                            </button>
+                          </form>
+                        </div>
                       )}
                     </div>
                     <img
@@ -369,6 +382,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
               deleteRoutineAction={deleteRoutineAction}
               assignScheduleAction={assignScheduleAction}
               saveEquipmentAction={saveEquipmentAction}
+              startRoutineNowAction={startRoutineNowAction}
             />
           </>
         }

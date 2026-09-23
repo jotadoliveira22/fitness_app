@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { WorkoutExerciseRecord } from "@fitness-app/api";
+import type { WorkoutExerciseRecord, ExerciseAlternative, AdaptationCandidate } from "@fitness-app/api";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
-import { CheckCircleIcon, ClockIcon, ChevronRightIcon } from "@/components/icons";
-import type { LoggedSetInput } from "@/app/(app)/workouts/actions";
+import { AdaptWorkoutSheet } from "@/components/AdaptWorkoutSheet";
+import { CheckCircleIcon, ClockIcon, ChevronRightIcon, RefreshIcon, XIcon } from "@/components/icons";
+import type { LoggedSetInput, AdaptationConstraintsInput } from "@/app/(app)/workouts/actions";
+
+export interface RunnerExercise extends WorkoutExerciseRecord {
+  alternatives?: ExerciseAlternative[];
+}
 
 interface SetState {
   reps: number | null;
@@ -46,27 +51,62 @@ function playRestAlarm() {
 interface WorkoutRunnerProps {
   sessionId: string;
   objective: string | null;
-  exercises: WorkoutExerciseRecord[];
+  exercises: RunnerExercise[];
   completeWorkoutAction: (sessionId: string, sets: LoggedSetInput[]) => Promise<void>;
+  replaceExerciseAction?: (formData: FormData) => Promise<void>;
+  proposeAdaptationAction?: (
+    sessionId: string,
+    constraints: AdaptationConstraintsInput,
+  ) => Promise<{ candidate: AdaptationCandidate }>;
+  applyAdaptationAction?: (sessionId: string) => Promise<void>;
 }
 
-export function WorkoutRunner({ sessionId, objective, exercises, completeWorkoutAction }: WorkoutRunnerProps) {
+function initialSetState(ex: WorkoutExerciseRecord): SetState[] {
+  return Array.from({ length: ex.targetSets }, () => ({
+    reps: parseTargetReps(ex.targetReps),
+    weightKg: ex.targetWeightKg,
+    durationSeconds: ex.targetDurationSeconds,
+    distanceM: ex.targetDistanceM,
+    done: false,
+  }));
+}
+
+export function WorkoutRunner({
+  sessionId,
+  objective,
+  exercises,
+  completeWorkoutAction,
+  replaceExerciseAction,
+  proposeAdaptationAction,
+  applyAdaptationAction,
+}: WorkoutRunnerProps) {
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [setsByExercise, setSetsByExercise] = useState<Record<string, SetState[]>>(() => {
     const initial: Record<string, SetState[]> = {};
-    for (const ex of exercises) {
-      initial[ex.id] = Array.from({ length: ex.targetSets }, () => ({
-        reps: parseTargetReps(ex.targetReps),
-        weightKg: ex.targetWeightKg,
-        durationSeconds: ex.targetDurationSeconds,
-        distanceM: ex.targetDistanceM,
-        done: false,
-      }));
-    }
+    for (const ex of exercises) initial[ex.id] = initialSetState(ex);
     return initial;
   });
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [swapOpenFor, setSwapOpenFor] = useState<string | null>(null);
+
+  // Cuando se sustituye un ejercicio (replaceExerciseAction) el servidor
+  // manda una nueva lista con un id de ejercicio distinto para esa entrada;
+  // el useState de arriba solo corre al montar, así que acá se inicializan
+  // los sets de cualquier entrada nueva que aparezca.
+  useEffect(() => {
+    setSetsByExercise((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const ex of exercises) {
+        if (!next[ex.id]) {
+          next[ex.id] = initialSetState(ex);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [exercises]);
 
   useEffect(() => {
     if (restSeconds === null) return;
@@ -127,9 +167,18 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
 
   return (
     <div className="px-5 pt-6 pb-4">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent">
-        Ejercicio {exerciseIndex + 1} de {exercises.length}
-      </p>
+      <div className="mb-1 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-widest text-accent">
+          Ejercicio {exerciseIndex + 1} de {exercises.length}
+        </p>
+        {proposeAdaptationAction && applyAdaptationAction && (
+          <AdaptWorkoutSheet
+            sessionId={sessionId}
+            proposeAdaptationAction={proposeAdaptationAction}
+            applyAdaptationAction={applyAdaptationAction}
+          />
+        )}
+      </div>
       <h1 className="mb-4 font-display text-xl font-extrabold">{objective ?? "Entrenamiento"}</h1>
 
       <div className="card mb-4 flex items-center gap-3">
@@ -148,7 +197,52 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
             {currentExercise.targetWeightKg ? ` · ${currentExercise.targetWeightKg}kg` : ""}
           </p>
         </div>
+        {replaceExerciseAction && currentExercise.alternatives && currentExercise.alternatives.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setSwapOpenFor(currentExercise.id)}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surface-raised text-muted"
+            aria-label="Cambiar ejercicio"
+          >
+            <RefreshIcon className="h-4 w-4" />
+          </button>
+        )}
       </div>
+
+      {swapOpenFor === currentExercise.id && replaceExerciseAction && (
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60" onClick={() => setSwapOpenFor(null)}>
+          <div onClick={(e) => e.stopPropagation()} className="mx-auto w-full max-w-md rounded-t-3xl bg-surface p-5 pb-8">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="font-display text-lg font-extrabold">Cambiar ejercicio</p>
+              <button type="button" onClick={() => setSwapOpenFor(null)}>
+                <XIcon className="h-5 w-5 text-muted" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {(currentExercise.alternatives ?? []).map((alt) => (
+                <form
+                  key={alt.exercise.id}
+                  action={async (formData) => {
+                    await replaceExerciseAction(formData);
+                    setSwapOpenFor(null);
+                  }}
+                >
+                  <input type="hidden" name="sessionId" value={sessionId} />
+                  <input type="hidden" name="workoutExerciseId" value={currentExercise.id} />
+                  <input type="hidden" name="newExerciseId" value={alt.exercise.id} />
+                  <button type="submit" className="card flex w-full items-center gap-3 text-left">
+                    <ExerciseThumb exercise={alt.exercise} className="h-11 w-11" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{alt.exercise.name}</p>
+                      {alt.reason && <p className="truncate text-xs text-muted">{alt.reason}</p>}
+                    </div>
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mb-4 space-y-2">
         {currentSets.map((set, i) => (

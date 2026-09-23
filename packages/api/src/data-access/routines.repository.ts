@@ -207,6 +207,22 @@ export async function addExerciseToRoutine(
   if (error) throw new DataAccessError("No se pudo agregar el ejercicio a la rutina", error);
 }
 
+export async function removeExerciseFromRoutine(client: SupabaseClient, routineExerciseId: string): Promise<void> {
+  const { error } = await client.from("routine_exercises").delete().eq("id", routineExerciseId);
+  if (error) throw new DataAccessError("No se pudo quitar el ejercicio de la rutina", error);
+}
+
+/** orderedIds: ids de routine_exercises en el nuevo orden deseado. */
+export async function reorderRoutineExercises(client: SupabaseClient, orderedIds: string[]): Promise<void> {
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await client
+      .from("routine_exercises")
+      .update({ order_index: i })
+      .eq("id", orderedIds[i]!);
+    if (error) throw new DataAccessError("No se pudo reordenar la rutina", error);
+  }
+}
+
 export async function deleteRoutine(client: SupabaseClient, routineId: string): Promise<void> {
   const { error } = await client
     .from("routines")

@@ -64,10 +64,10 @@ export default async function HomePage() {
       </div>
 
       {!today.onboardingCompleted && (
-        <div className="card mb-5 border-accent/40 bg-accent/10">
-          <p className="text-sm font-semibold text-accent">Completa tu perfil</p>
+        <Link href="/onboarding" className="card mb-5 block border-accent/40 bg-accent/10">
+          <p className="text-sm font-semibold text-accent">Completa tu perfil →</p>
           <p className="mt-1 text-xs text-muted">Cuéntanos tus objetivos para armar tu plan.</p>
-        </div>
+        </Link>
       )}
 
       {today.workout ? (

@@ -1,4 +1,4 @@
-import type { MuscleGroup, TrainingContext } from "@fitness-app/shared";
+import type { MuscleGroup, TrainingContext, ExperienceLevel, GoalType, BiologicalSex, AdaptationLocation } from "@fitness-app/shared";
 
 export const GYM_MUSCLE_PICKER: MuscleGroup[] = [
   "quadriceps",
@@ -62,6 +62,35 @@ export function equipmentLabel(name: string): string {
 
 export const OUTDOOR_SPORTS: TrainingContext[] = ["running", "cycling", "football", "baseball", "padel"];
 export const SPECIAL_ACTIVITIES: TrainingContext[] = ["hyrox", "crossfit", "calisthenics"];
+
+export const EXPERIENCE_LEVEL_LABELS: Record<ExperienceLevel, string> = {
+  beginner: "Principiante",
+  intermediate: "Intermedio",
+  advanced: "Avanzado",
+};
+
+export const GOAL_TYPE_LABELS: Record<GoalType, string> = {
+  lose_fat: "Perder grasa",
+  gain_muscle: "Ganar músculo",
+  maintain: "Mantenerme",
+  improve_fitness: "Mejorar condición física",
+  improve_sport_performance: "Rendimiento deportivo",
+  mobility_wellbeing: "Movilidad y bienestar",
+  habit: "Crear el hábito de entrenar",
+};
+
+export const BIOLOGICAL_SEX_LABELS: Record<BiologicalSex, string> = {
+  female: "Femenino",
+  male: "Masculino",
+  unspecified: "Prefiero no decir",
+};
+
+export const ADAPTATION_LOCATION_LABELS: Record<AdaptationLocation, string> = {
+  home: "Casa",
+  gym: "Gimnasio",
+  hotel: "Hotel / viaje",
+  outdoor: "Aire libre",
+};
 
 export const TRAINING_CONTEXT_LABELS: Record<TrainingContext, string> = {
   home: "Casa",

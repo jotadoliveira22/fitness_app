@@ -195,6 +195,22 @@ export async function commitAdaptation(
   return toRecord(data);
 }
 
+export async function skipSession(
+  client: SupabaseClient,
+  sessionId: string,
+): Promise<WorkoutSessionRecord> {
+  const { data, error } = await client
+    .from("workout_sessions")
+    .update({ status: "skipped" })
+    .eq("id", sessionId)
+    .select(COLUMNS)
+    .maybeSingle<WorkoutSessionRow>();
+
+  if (error) throw new DataAccessError("No se pudo saltar la sesión", error);
+  if (!data) throw new NotFoundError("Sesión de entrenamiento");
+  return toRecord(data);
+}
+
 export async function completeSession(
   client: SupabaseClient,
   sessionId: string,
