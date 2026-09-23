@@ -51,7 +51,7 @@ interface WorkoutsPageProps {
 export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) {
   const sp = await searchParams;
   const initialTab: WorkoutTab =
-    sp.tab === "rutinas" ? "Mis rutinas" : sp.tab === "ejercicios" ? "Ejercicios" : sp.tab === "explorar" ? "Explorar" : "Plan";
+    sp.tab === "rutinas" ? "Mis rutinas" : sp.tab === "ejercicios" ? "Ejercicios" : "Plan";
   const autoOpenCreate = sp.new === "1";
 
   const supabase = await createClient();
@@ -371,29 +371,6 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
               saveEquipmentAction={saveEquipmentAction}
             />
           </>
-        }
-        explorar={
-          <div className="space-y-2">
-            <p className="mb-2 text-xs text-muted">Catálogo completo de ejercicios disponibles.</p>
-            {catalog.map((ex) => (
-              <Link key={ex.id} href={`/workouts/exercise/${ex.id}`} className="card flex gap-3">
-                <ExerciseThumb exercise={ex} className="h-12 w-12" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="truncate text-sm font-semibold">{ex.name}</p>
-                    <span className="flex-shrink-0 text-[10px] text-muted">{ex.difficulty}</span>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {ex.modalities.map((m) => (
-                      <span key={m} className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-muted">
-                        {TRAINING_CONTEXT_LABELS[m]}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
         }
       />
     </div>

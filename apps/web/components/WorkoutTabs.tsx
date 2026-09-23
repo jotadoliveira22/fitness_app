@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const TABS = ["Plan", "Ejercicios", "Mis rutinas", "Explorar"] as const;
+const TABS = ["Plan", "Ejercicios", "Mis rutinas"] as const;
 export type WorkoutTab = (typeof TABS)[number];
 
 interface WorkoutTabsProps {
@@ -10,7 +10,6 @@ interface WorkoutTabsProps {
   plan: React.ReactNode;
   ejercicios: React.ReactNode;
   misRutinas: React.ReactNode;
-  explorar: React.ReactNode;
 }
 
 /**
@@ -19,13 +18,12 @@ interface WorkoutTabsProps {
  * Client Component no funciona en producción (rompe la serialización RSC,
  * aunque el build local no lo detecta).
  */
-export function WorkoutTabs({ initialTab = "Plan", plan, ejercicios, misRutinas, explorar }: WorkoutTabsProps) {
+export function WorkoutTabs({ initialTab = "Plan", plan, ejercicios, misRutinas }: WorkoutTabsProps) {
   const [tab, setTab] = useState<WorkoutTab>(initialTab);
   const content: Record<WorkoutTab, React.ReactNode> = {
     Plan: plan,
     Ejercicios: ejercicios,
     "Mis rutinas": misRutinas,
-    Explorar: explorar,
   };
 
   return (
