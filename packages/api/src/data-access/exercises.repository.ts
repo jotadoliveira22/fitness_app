@@ -42,6 +42,9 @@ const DIFFICULTY_RANK: Record<ExperienceLevel, number> = {
   advanced: 2,
 };
 
+/** .in() con miles de UUIDs arma una URL demasiado larga (PostgREST va por GET); se pide en tandas. */
+const EQUIPMENT_LOOKUP_BATCH_SIZE = 150;
+
 async function attachEquipment(
   client: SupabaseClient,
   exercises: ExerciseRow[],
@@ -49,15 +52,20 @@ async function attachEquipment(
   if (exercises.length === 0) return [];
 
   const ids = exercises.map((exercise) => exercise.id);
-  const { data: links, error } = await client
-    .from("exercise_equipment")
-    .select("exercise_id, equipment:equipment_id(name)")
-    .in("exercise_id", ids);
+  const links: Array<{ exercise_id: string; equipment: { name: string } | null }> = [];
+  for (let i = 0; i < ids.length; i += EQUIPMENT_LOOKUP_BATCH_SIZE) {
+    const batch = ids.slice(i, i + EQUIPMENT_LOOKUP_BATCH_SIZE);
+    const { data, error } = await client
+      .from("exercise_equipment")
+      .select("exercise_id, equipment:equipment_id(name)")
+      .in("exercise_id", batch);
 
-  if (error) throw new DataAccessError("No se pudo obtener el equipamiento de los ejercicios", error);
+    if (error) throw new DataAccessError("No se pudo obtener el equipamiento de los ejercicios", error);
+    links.push(...(data as unknown as Array<{ exercise_id: string; equipment: { name: string } | null }>));
+  }
 
   const equipmentByExercise = new Map<string, string[]>();
-  for (const link of (links ?? []) as unknown as Array<{ exercise_id: string; equipment: { name: string } | null }>) {
+  for (const link of links) {
     const list = equipmentByExercise.get(link.exercise_id) ?? [];
     if (link.equipment?.name) list.push(link.equipment.name);
     equipmentByExercise.set(link.exercise_id, list);
