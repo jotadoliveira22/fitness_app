@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ExerciseRecord, RoutineRecord } from "@fitness-app/api";
 import type { TrainingContext } from "@fitness-app/shared";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
@@ -17,6 +17,7 @@ interface ExerciseDetailProps {
 }
 
 export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction }: ExerciseDetailProps) {
+  const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [minutes, setMinutes] = useState(30);
   const [target, setTarget] = useState<string>(routines[0]?.id ?? "new");
@@ -58,12 +59,13 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-black/20" />
 
-      <Link
-        href="/workouts?tab=ejercicios"
-        className="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur"
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur"
       >
         <ChevronRightIcon className="h-4 w-4 rotate-180" />
-      </Link>
+      </button>
 
       <div className="relative z-10 flex min-h-dvh flex-col justify-end px-5 pb-28 pt-10">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-accent">
