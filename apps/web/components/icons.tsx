@@ -303,9 +303,8 @@ export function ActivityFilledIcon({ className }: IconProps) {
 export function KettlebellFilledIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <rect x="5" y="0.5" width="14" height="15" rx="7" />
-      <circle cx="12" cy="15.5" r="8.5" />
-      <path d="M8.3 5.2h7.4a1 1 0 0 1 .85 1.52l-1.9 3.1a7.6 7.6 0 0 0-5.3 0l-1.9-3.1a1 1 0 0 1 .85-1.52z" fill={NAV_CUTOUT} />
+      <path d="M6.52,0.38 L4.64,1.78 L3.61,3.98 L3.8,6.52 L5.67,9.66 L3.98,11.81 L3.05,14.3 L2.86,16.88 L3.61,19.92 L5.11,22.27 L7.08,23.95 L16.88,23.95 L19.69,21.14 L21,17.67 L21.05,15.14 L20.53,13.03 L18.28,9.66 L20.2,6.38 L20.39,4.31 L20.06,3.05 L18.61,1.08 L16.31,0.05 L8.02,0 Z" />
+      <path d="M7.73,4.69 L8.3,4.17 L15.66,4.17 L16.12,4.5 L16.22,5.11 L14.67,7.5 L12.61,7.12 L9.28,7.5 Z" fill={NAV_CUTOUT} />
     </svg>
   );
 }
