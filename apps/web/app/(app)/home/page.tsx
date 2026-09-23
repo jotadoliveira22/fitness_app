@@ -158,7 +158,7 @@ export default async function HomePage() {
             </div>
           ) : (
             <Link
-              href="/progress"
+              href="/home?checkin=1"
               className="flex items-center gap-2 rounded-full bg-accent px-3 py-2 text-[11px] font-bold text-black"
             >
               Hacer check-in →

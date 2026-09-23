@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { logWeightAction, logCheckinAction, toggleFastAction } from "@/app/(app)/quick-add/actions";
 import { PlusIcon, PlusThickIcon, XIcon, DumbbellIcon, ScaleIcon, LeafIcon, ClockIcon, MealIcon } from "@/components/icons";
 
@@ -23,6 +23,17 @@ export function QuickAddSheet() {
   const [submitting, setSubmitting] = useState(false);
   const [fastLoading, setFastLoading] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("checkin") === "1") {
+      setOpen(true);
+      setPanel("checkin");
+      router.replace(pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   function close() {
     setOpen(false);

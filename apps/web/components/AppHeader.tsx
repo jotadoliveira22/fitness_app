@@ -1,13 +1,21 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BellIcon } from "@/components/icons";
+import { countUnreadNotifications } from "@fitness-app/api";
+import { createClient } from "@/lib/supabase/server";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface AppHeaderProps {
   initial: string;
 }
 
 /** Header compartido: logo, notificaciones, y acceso al perfil (avatar). */
-export function AppHeader({ initial }: AppHeaderProps) {
+export async function AppHeader({ initial }: AppHeaderProps) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const unreadCount = user ? await countUnreadNotifications(supabase, user.id).catch(() => 0) : 0;
+
   return (
     <div className="mb-5 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -15,10 +23,7 @@ export function AppHeader({ initial }: AppHeaderProps) {
         <span className="font-display text-sm font-extrabold tracking-wide">SUMIVA</span>
       </div>
       <div className="flex items-center gap-3">
-        <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface">
-          <BellIcon className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
-        </div>
+        <NotificationBell initialUnreadCount={unreadCount} />
         <Link
           href="/profile"
           className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-raised text-xs font-bold"

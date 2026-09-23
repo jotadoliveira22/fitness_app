@@ -35,6 +35,13 @@ export { getProfile, updateProfile, type ProfileWithPreferences } from "./servic
 export { saveProfileSetup, type OnboardingResult } from "./services/onboarding.service.js";
 export { getDailyCheckin, saveDailyCheckin } from "./services/daily-checkin.service.js";
 export { getToday, type TodayResult } from "./services/today.service.js";
+export {
+  listNotifications,
+  countUnreadNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  type NotificationRecord,
+} from "./data-access/notifications.repository.js";
 
 // Training Engine
 export {

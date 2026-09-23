@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeFilledIcon, KettlebellFilledIcon, NutritionFilledIcon, ActivityFilledIcon } from "./icons";
@@ -45,7 +46,9 @@ export function BottomNav() {
 
         <div className="pointer-events-none absolute inset-x-0 top-0 flex -translate-y-1/2 justify-center">
           <div className="pointer-events-auto">
-            <QuickAddSheet />
+            <Suspense fallback={null}>
+              <QuickAddSheet />
+            </Suspense>
           </div>
         </div>
       </div>
