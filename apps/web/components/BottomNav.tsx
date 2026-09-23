@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeFilledIcon, DumbbellFilledIcon, NutritionFilledIcon, ActivityFilledIcon } from "./icons";
+import { HomeFilledIcon, KettlebellFilledIcon, NutritionFilledIcon, ActivityFilledIcon } from "./icons";
 import { QuickAddSheet } from "./QuickAddSheet";
 
 const LEFT_ITEMS = [
   { href: "/home", label: "Inicio", icon: HomeFilledIcon },
-  { href: "/workouts", label: "Entrenos", icon: DumbbellFilledIcon },
+  { href: "/workouts", label: "Entrenos", icon: KettlebellFilledIcon },
 ];
 
 const RIGHT_ITEMS = [
