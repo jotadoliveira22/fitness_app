@@ -2,7 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import type { TrainingContext } from "@fitness-app/shared";
-import { insertRoutine, deleteRoutine, assignRoutineToWeekday, clearWeekday, materializeRoutineForDate } from "@fitness-app/api";
+import {
+  insertRoutine,
+  deleteRoutine,
+  assignRoutineToWeekday,
+  clearWeekday,
+  materializeRoutineForDate,
+  setUserEquipmentForContext,
+  updateOwnPreferences,
+} from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 
 interface RoutineExerciseInput {
@@ -80,6 +88,26 @@ export async function assignScheduleAction(formData: FormData) {
   }
 
   revalidatePath("/workouts");
+}
+
+export async function saveEquipmentAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const context = String(formData.get("context") ?? "") as TrainingContext;
+  const equipmentIds = formData.getAll("equipmentIds").map(String);
+  if (context !== "home" && context !== "gym") return;
+
+  await setUserEquipmentForContext(supabase, user.id, context, equipmentIds);
+  await updateOwnPreferences(supabase, user.id, {
+    ...(context === "home" ? { homeEquipmentConfigured: true } : { gymEquipmentConfigured: true }),
+  });
+
+  revalidatePath("/workouts");
+  revalidatePath("/profile");
 }
 
 export async function startScheduledRoutineAction(formData: FormData) {

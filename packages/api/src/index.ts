@@ -45,7 +45,12 @@ export {
   type ExerciseRecord,
   type ExerciseAlternative,
 } from "./data-access/exercises.repository.js";
-export { listUserEquipmentNames } from "./data-access/equipment.repository.js";
+export {
+  listUserEquipmentNames,
+  listEquipmentCatalog,
+  setUserEquipmentForContext,
+  type EquipmentRecord,
+} from "./data-access/equipment.repository.js";
 export {
   getActiveProgram,
   type TrainingProgramRecord,

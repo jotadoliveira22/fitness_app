@@ -14,6 +14,8 @@ export interface UserPreferencesRecord {
   preferredTrainingDays: number[];
   sessionDurationMinutes: number | null;
   nutritionPlanIntent: NutritionPlanIntent | null;
+  homeEquipmentConfigured: boolean;
+  gymEquipmentConfigured: boolean;
 }
 
 interface UserPreferencesRow {
@@ -28,10 +30,12 @@ interface UserPreferencesRow {
   preferred_training_days: number[];
   session_duration_minutes: number | null;
   nutrition_plan_intent: NutritionPlanIntent | null;
+  home_equipment_configured: boolean;
+  gym_equipment_configured: boolean;
 }
 
 const COLUMNS =
-  "user_id, units, language, dietary_preferences, allergies, training_context, experience_level, training_days_per_week, preferred_training_days, session_duration_minutes, nutrition_plan_intent";
+  "user_id, units, language, dietary_preferences, allergies, training_context, experience_level, training_days_per_week, preferred_training_days, session_duration_minutes, nutrition_plan_intent, home_equipment_configured, gym_equipment_configured";
 
 function toRecord(row: UserPreferencesRow): UserPreferencesRecord {
   return {
@@ -46,6 +50,8 @@ function toRecord(row: UserPreferencesRow): UserPreferencesRecord {
     preferredTrainingDays: row.preferred_training_days,
     sessionDurationMinutes: row.session_duration_minutes,
     nutritionPlanIntent: row.nutrition_plan_intent,
+    homeEquipmentConfigured: row.home_equipment_configured,
+    gymEquipmentConfigured: row.gym_equipment_configured,
   };
 }
 
@@ -70,6 +76,8 @@ export interface UpdatePreferencesInput {
   preferredTrainingDays?: number[];
   sessionDurationMinutes?: number;
   nutritionPlanIntent?: NutritionPlanIntent;
+  homeEquipmentConfigured?: boolean;
+  gymEquipmentConfigured?: boolean;
 }
 
 export async function updateOwnPreferences(
@@ -91,6 +99,12 @@ export async function updateOwnPreferences(
   }
   if (input.nutritionPlanIntent !== undefined) {
     patch["nutrition_plan_intent"] = input.nutritionPlanIntent;
+  }
+  if (input.homeEquipmentConfigured !== undefined) {
+    patch["home_equipment_configured"] = input.homeEquipmentConfigured;
+  }
+  if (input.gymEquipmentConfigured !== undefined) {
+    patch["gym_equipment_configured"] = input.gymEquipmentConfigured;
   }
 
   const { data, error } = await client

@@ -14,6 +14,9 @@ const WORKOUT_PHOTOS: Partial<Record<TrainingContext, string>> = {
   cycling: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=400&h=400&fit=crop&q=80",
   swimming: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&h=400&fit=crop&q=80",
   football: "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=400&h=400&fit=crop&q=80",
+  hyrox: "https://images.unsplash.com/photo-1533560904424-a0c61dc306fc?w=400&h=400&fit=crop&q=80",
+  padel: "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=400&h=400&fit=crop&q=80",
+  baseball: "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=400&h=400&fit=crop&q=80",
 };
 
 const DEFAULT_PHOTO = WORKOUT_PHOTOS.gym!;

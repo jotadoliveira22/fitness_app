@@ -1,8 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
-import { getToday, getOwnPreferences, getLatestMeasurement, insertMeasurement, getActiveProgram } from "@fitness-app/api";
+import {
+  getToday,
+  getOwnPreferences,
+  getLatestMeasurement,
+  insertMeasurement,
+  getActiveProgram,
+  listEquipmentCatalog,
+  listUserEquipmentNames,
+} from "@fitness-app/api";
 import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { IconStat } from "@/components/IconStat";
+import { EquipmentEditor } from "@/components/EquipmentEditor";
+import { saveEquipmentAction } from "@/app/(app)/workouts/actions";
 import {
   DumbbellIcon,
   FlameIcon,
@@ -57,13 +67,17 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [today, prefs, stats, latestMeasurement, activeProgram] = await Promise.all([
-    getToday(supabase, user.id),
-    getOwnPreferences(supabase, user.id).catch(() => null),
-    getTrainingStats(supabase, user.id),
-    getLatestMeasurement(supabase, user.id).catch(() => null),
-    getActiveProgram(supabase, user.id).catch(() => null),
-  ]);
+  const [today, prefs, stats, latestMeasurement, activeProgram, homeEquipmentCatalog, gymEquipmentCatalog, userEquipmentNames] =
+    await Promise.all([
+      getToday(supabase, user.id),
+      getOwnPreferences(supabase, user.id).catch(() => null),
+      getTrainingStats(supabase, user.id),
+      getLatestMeasurement(supabase, user.id).catch(() => null),
+      getActiveProgram(supabase, user.id).catch(() => null),
+      listEquipmentCatalog(supabase, "home"),
+      listEquipmentCatalog(supabase, "gym"),
+      listUserEquipmentNames(supabase, user.id),
+    ]);
   const profile = today.profile;
 
   const heightM = profile?.heightCm ? profile.heightCm / 100 : null;
@@ -159,6 +173,16 @@ export default async function ProfilePage() {
           Guardar
         </button>
       </form>
+
+      <p className="mb-3 text-sm font-semibold">Mi equipo de entrenamiento</p>
+      <div className="mb-6">
+        <EquipmentEditor
+          homeEquipmentCatalog={homeEquipmentCatalog}
+          gymEquipmentCatalog={gymEquipmentCatalog}
+          userEquipmentNames={userEquipmentNames}
+          saveEquipmentAction={saveEquipmentAction}
+        />
+      </div>
 
       <p className="mb-3 text-sm font-semibold">Configuración</p>
       <div className="card mb-6 divide-y divide-border">

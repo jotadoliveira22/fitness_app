@@ -10,6 +10,8 @@ import {
   listRoutines,
   listSchedule,
   getRoutineExercises,
+  listEquipmentCatalog,
+  listUserEquipmentNames,
 } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
@@ -20,7 +22,13 @@ import { WorkoutTabs, type WorkoutTab } from "@/components/WorkoutTabs";
 import { RoutinesManager } from "@/components/RoutinesManager";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon, PlusIcon } from "@/components/icons";
-import { createRoutineAction, deleteRoutineAction, assignScheduleAction, startScheduledRoutineAction } from "./actions";
+import {
+  createRoutineAction,
+  deleteRoutineAction,
+  assignScheduleAction,
+  startScheduledRoutineAction,
+  saveEquipmentAction,
+} from "./actions";
 
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -57,15 +65,30 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
   const monthAgo = new Date();
   monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-  const [today, prefs, activeProgram, weekSessions, recentSessions, catalog, routines, schedule] = await Promise.all([
+  const [
+    today,
+    prefs,
+    activeProgram,
+    weekSessions,
+    recentSessions,
+    catalog,
+    routines,
+    schedule,
+    homeEquipmentCatalog,
+    gymEquipmentCatalog,
+    userEquipmentNames,
+  ] = await Promise.all([
     getToday(supabase, user.id),
     getOwnPreferences(supabase, user.id).catch(() => null),
     getActiveProgram(supabase, user.id).catch(() => null),
     listSessionsInRange(supabase, user.id, fromIso, toIso),
     listSessionsInRange(supabase, user.id, monthAgo.toISOString().slice(0, 10), toIso),
-    listExerciseCatalog(supabase, { limit: 60 }),
+    listExerciseCatalog(supabase, { limit: 200 }),
     listRoutines(supabase, user.id),
     listSchedule(supabase, user.id),
+    listEquipmentCatalog(supabase, "home"),
+    listEquipmentCatalog(supabase, "gym"),
+    listUserEquipmentNames(supabase, user.id),
   ]);
 
   const todayWeekday = new Date().getDay();
@@ -318,10 +341,16 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
               exerciseCounts={exerciseCounts}
               schedule={schedule}
               catalog={catalog}
+              homeEquipmentCatalog={homeEquipmentCatalog}
+              gymEquipmentCatalog={gymEquipmentCatalog}
+              userEquipmentNames={userEquipmentNames}
+              homeEquipmentConfigured={prefs?.homeEquipmentConfigured ?? false}
+              gymEquipmentConfigured={prefs?.gymEquipmentConfigured ?? false}
               autoOpenCreate={autoOpenCreate}
               createRoutineAction={createRoutineAction}
               deleteRoutineAction={deleteRoutineAction}
               assignScheduleAction={assignScheduleAction}
+              saveEquipmentAction={saveEquipmentAction}
             />
           </>
         }

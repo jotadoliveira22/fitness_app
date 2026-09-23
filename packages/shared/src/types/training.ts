@@ -7,6 +7,9 @@ export const TRAINING_CONTEXTS = [
   "swimming",
   "calisthenics",
   "cycling",
+  "hyrox",
+  "padel",
+  "baseball",
   "other",
 ] as const;
 export type TrainingContext = (typeof TRAINING_CONTEXTS)[number];
