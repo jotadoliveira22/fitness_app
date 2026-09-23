@@ -43,38 +43,43 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
   }
 
   return (
-    <div className="pb-6">
-      <div className="relative h-72 w-full overflow-hidden">
-        {exercise.videoUrl ? (
-          <video src={exercise.videoUrl} autoPlay muted loop playsInline className="h-full w-full object-cover" />
-        ) : (
-          <img src={heroPhoto} alt="" className="h-full w-full object-cover" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-black/30" />
-        <Link
-          href="/workouts?tab=ejercicios"
-          className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur"
-        >
-          <ChevronRightIcon className="h-4 w-4 rotate-180" />
-        </Link>
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-accent">
-            {MUSCLE_GROUP_LABELS[exercise.primaryMuscleGroup]} · {TRAINING_CONTEXT_LABELS[exercise.modalities[0] ?? "other"]}
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold leading-tight">{exercise.name}</h1>
-        </div>
-      </div>
+    <div className="relative min-h-dvh w-full overflow-hidden">
+      {exercise.videoUrl ? (
+        <video
+          src={exercise.videoUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <img src={heroPhoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-black/20" />
 
-      <div className="px-5 pt-5">
-        {exercise.instructions && <p className="mb-4 text-sm leading-relaxed text-muted">{exercise.instructions}</p>}
+      <Link
+        href="/workouts?tab=ejercicios"
+        className="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur"
+      >
+        <ChevronRightIcon className="h-4 w-4 rotate-180" />
+      </Link>
+
+      <div className="relative z-10 flex min-h-dvh flex-col justify-end px-5 pb-28 pt-10">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-accent">
+          {MUSCLE_GROUP_LABELS[exercise.primaryMuscleGroup]} · {TRAINING_CONTEXT_LABELS[exercise.modalities[0] ?? "other"]}
+        </p>
+        <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight">{exercise.name}</h1>
+
+        {exercise.instructions && <p className="mb-4 mt-3 text-sm leading-relaxed text-muted">{exercise.instructions}</p>}
 
         <div className="mb-5 flex flex-wrap gap-2">
           {exercise.caloriesPer30Min && (
-            <span className="flex items-center gap-1.5 rounded-full bg-surface-raised px-3 py-1.5 text-xs font-semibold">
+            <span className="flex items-center gap-1.5 rounded-full bg-surface-raised/80 px-3 py-1.5 text-xs font-semibold backdrop-blur">
               <FlameIcon className="h-3.5 w-3.5 text-accent" />~{exercise.caloriesPer30Min} kcal / 30 min (aprox.)
             </span>
           )}
-          <span className="flex items-center gap-1.5 rounded-full bg-surface-raised px-3 py-1.5 text-xs font-semibold">
+          <span className="flex items-center gap-1.5 rounded-full bg-surface-raised/80 px-3 py-1.5 text-xs font-semibold backdrop-blur">
             <ClockIcon className="h-3.5 w-3.5 text-accent" />
             {exercise.difficulty}
           </span>
