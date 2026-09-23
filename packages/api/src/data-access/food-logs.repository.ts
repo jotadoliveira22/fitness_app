@@ -123,6 +123,11 @@ export async function getLogsForDate(
   return results;
 }
 
+export async function deleteFoodLog(client: SupabaseClient, foodLogId: string): Promise<void> {
+  const { error } = await client.from("food_logs").delete().eq("id", foodLogId);
+  if (error) throw new DataAccessError("No se pudo borrar la comida registrada", error);
+}
+
 export async function listDistinctLogDatesSince(
   client: SupabaseClient,
   userId: string,

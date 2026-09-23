@@ -3,10 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { MEAL_TYPES, type MealType } from "@fitness-app/shared";
+import type { MealCandidateItem } from "@fitness-app/api";
 import { logWeightAction, logCheckinAction, toggleFastAction } from "@/app/(app)/quick-add/actions";
-import { PlusIcon, PlusThickIcon, XIcon, DumbbellIcon, ScaleIcon, LeafIcon, ClockIcon, MealIcon } from "@/components/icons";
+import { logMealCandidatesAction, saveMealAction } from "@/app/(app)/nutrition/actions";
+import { PlusIcon, PlusThickIcon, XIcon, DumbbellIcon, ScaleIcon, LeafIcon, ClockIcon, MealIcon, TrashIcon } from "@/components/icons";
 
-type Panel = "menu" | "weight" | "checkin";
+type Panel = "menu" | "weight" | "checkin" | "meal" | "meal-review";
+
+const MEAL_TYPE_LABELS: Record<MealType, string> = {
+  breakfast: "Desayuno",
+  lunch: "Almuerzo",
+  dinner: "Cena",
+  snack: "Snack",
+};
 
 const SCALE_FIELDS: { key: "energy" | "sleepQuality" | "stress" | "soreness"; label: string }[] = [
   { key: "energy", label: "Energía" },
@@ -22,6 +32,10 @@ export function QuickAddSheet() {
   const [scales, setScales] = useState<Record<string, number>>({ energy: 3, sleepQuality: 3, stress: 3, soreness: 3 });
   const [submitting, setSubmitting] = useState(false);
   const [fastLoading, setFastLoading] = useState(false);
+  const [mealType, setMealType] = useState<MealType>("lunch");
+  const [mealDescription, setMealDescription] = useState("");
+  const [mealCandidates, setMealCandidates] = useState<MealCandidateItem[]>([]);
+  const [mealSearching, setMealSearching] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,6 +53,8 @@ export function QuickAddSheet() {
     setOpen(false);
     setPanel("menu");
     setWeight("");
+    setMealDescription("");
+    setMealCandidates([]);
   }
 
   async function submitWeight() {
@@ -71,6 +87,45 @@ export function QuickAddSheet() {
     router.refresh();
   }
 
+  async function searchMeal() {
+    if (!mealDescription.trim()) return;
+    setMealSearching(true);
+    const candidates = await logMealCandidatesAction(mealDescription.trim());
+    setMealCandidates(candidates);
+    setMealSearching(false);
+    setPanel("meal-review");
+  }
+
+  function updateCandidate(index: number, patch: Partial<MealCandidateItem>) {
+    setMealCandidates((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+  }
+
+  function removeCandidate(index: number) {
+    setMealCandidates((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function confirmMeal() {
+    if (mealCandidates.length === 0) return;
+    setSubmitting(true);
+    await saveMealAction({
+      mealType,
+      items: mealCandidates.map((c) => ({
+        foodDescription: c.foodDescription,
+        ...(c.foodId ? { foodId: c.foodId } : {}),
+        quantity: c.quantity,
+        unit: c.unit,
+        calories: c.calories,
+        proteinG: c.proteinG,
+        carbsG: c.carbsG,
+        fatG: c.fatG,
+        confidence: c.confidence,
+      })),
+    });
+    setSubmitting(false);
+    close();
+    router.refresh();
+  }
+
   return (
     <>
       <button
@@ -90,7 +145,13 @@ export function QuickAddSheet() {
           >
             <div className="mb-4 flex items-center justify-between">
               <p className="font-display text-lg font-extrabold">
-                {panel === "menu" ? "Agregar" : panel === "weight" ? "Registrar peso" : "Check-in diario"}
+                {panel === "menu"
+                  ? "Agregar"
+                  : panel === "weight"
+                    ? "Registrar peso"
+                    : panel === "checkin"
+                      ? "Check-in diario"
+                      : "Registrar comida"}
               </p>
               <button type="button" onClick={close}>
                 <XIcon className="h-5 w-5 text-muted" />
@@ -132,10 +193,14 @@ export function QuickAddSheet() {
                   <ClockIcon className="h-5 w-5 text-accent" />
                   <span className="text-sm font-semibold">{fastLoading ? "Actualizando..." : "Iniciar / finalizar ayuno"}</span>
                 </button>
-                <div className="flex items-center gap-3 rounded-2xl bg-surface-raised/50 p-4 opacity-50">
-                  <MealIcon className="h-5 w-5" />
-                  <span className="text-sm font-semibold">Registrar comida (próximamente)</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setPanel("meal")}
+                  className="flex w-full items-center gap-3 rounded-2xl bg-surface-raised p-4 text-left"
+                >
+                  <MealIcon className="h-5 w-5 text-accent" />
+                  <span className="text-sm font-semibold">Registrar comida</span>
+                </button>
               </div>
             )}
 
@@ -193,6 +258,149 @@ export function QuickAddSheet() {
                 >
                   {submitting ? "Guardando..." : "Guardar check-in"}
                 </button>
+              </div>
+            )}
+
+            {panel === "meal" && (
+              <div>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">Comida</label>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {MEAL_TYPES.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setMealType(t)}
+                      className={`rounded-full px-3.5 py-2 text-xs font-semibold ${
+                        mealType === t ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                      }`}
+                    >
+                      {MEAL_TYPE_LABELS[t]}
+                    </button>
+                  ))}
+                </div>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  ¿Qué comiste?
+                </label>
+                <textarea
+                  value={mealDescription}
+                  onChange={(e) => setMealDescription(e.target.value)}
+                  placeholder="Ej. 200g de pollo, 1 taza de arroz, ensalada"
+                  rows={3}
+                  autoFocus
+                  className="mb-4 w-full rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={searchMeal}
+                  disabled={!mealDescription.trim() || mealSearching}
+                  className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
+                >
+                  {mealSearching ? "Buscando..." : "Continuar"}
+                </button>
+              </div>
+            )}
+
+            {panel === "meal-review" && (
+              <div>
+                <p className="mb-3 text-xs text-muted">
+                  Revisá y ajustá antes de guardar. Los ítems en rojo no se encontraron en el catálogo: completá sus
+                  calorías/macros a mano o borralos.
+                </p>
+                {mealCandidates.length === 0 ? (
+                  <p className="mb-4 py-6 text-center text-sm text-muted">No se detectó ningún alimento.</p>
+                ) : (
+                  <div className="mb-4 space-y-3">
+                    {mealCandidates.map((c, i) => (
+                      <div key={i} className={`card ${!c.matched ? "border-red-400/40" : ""}`}>
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <input
+                            type="text"
+                            value={c.foodDescription}
+                            onChange={(e) => updateCandidate(i, { foodDescription: e.target.value })}
+                            className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none"
+                          />
+                          <button type="button" onClick={() => removeCandidate(i)} className="flex-shrink-0 text-muted">
+                            <TrashIcon className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <label className="flex items-center gap-1.5">
+                            <span className="text-muted">Cant.</span>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={c.quantity}
+                              onChange={(e) => updateCandidate(i, { quantity: Number(e.target.value) || 0 })}
+                              className="w-full min-w-0 rounded-lg border border-border bg-surface-raised px-2 py-1"
+                            />
+                          </label>
+                          <label className="flex items-center gap-1.5">
+                            <span className="text-muted">Unidad</span>
+                            <input
+                              type="text"
+                              value={c.unit}
+                              onChange={(e) => updateCandidate(i, { unit: e.target.value })}
+                              className="w-full min-w-0 rounded-lg border border-border bg-surface-raised px-2 py-1"
+                            />
+                          </label>
+                          <label className="flex items-center gap-1.5">
+                            <span className="text-muted">Kcal</span>
+                            <input
+                              type="number"
+                              value={c.calories}
+                              onChange={(e) => updateCandidate(i, { calories: Number(e.target.value) || 0 })}
+                              className="w-full min-w-0 rounded-lg border border-border bg-surface-raised px-2 py-1"
+                            />
+                          </label>
+                          <label className="flex items-center gap-1.5">
+                            <span className="text-muted">Prot. g</span>
+                            <input
+                              type="number"
+                              value={c.proteinG}
+                              onChange={(e) => updateCandidate(i, { proteinG: Number(e.target.value) || 0 })}
+                              className="w-full min-w-0 rounded-lg border border-border bg-surface-raised px-2 py-1"
+                            />
+                          </label>
+                          <label className="flex items-center gap-1.5">
+                            <span className="text-muted">Carb. g</span>
+                            <input
+                              type="number"
+                              value={c.carbsG}
+                              onChange={(e) => updateCandidate(i, { carbsG: Number(e.target.value) || 0 })}
+                              className="w-full min-w-0 rounded-lg border border-border bg-surface-raised px-2 py-1"
+                            />
+                          </label>
+                          <label className="flex items-center gap-1.5">
+                            <span className="text-muted">Grasa g</span>
+                            <input
+                              type="number"
+                              value={c.fatG}
+                              onChange={(e) => updateCandidate(i, { fatG: Number(e.target.value) || 0 })}
+                              className="w-full min-w-0 rounded-lg border border-border bg-surface-raised px-2 py-1"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPanel("meal")}
+                    className="flex-1 rounded-full bg-surface-raised py-3 text-xs font-bold text-muted"
+                  >
+                    Volver
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmMeal}
+                    disabled={mealCandidates.length === 0 || submitting}
+                    className="flex-1 rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
+                  >
+                    {submitting ? "Guardando..." : "Guardar comida"}
+                  </button>
+                </div>
               </div>
             )}
           </div>

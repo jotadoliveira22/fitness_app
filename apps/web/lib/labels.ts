@@ -1,4 +1,14 @@
-import type { MuscleGroup, TrainingContext, ExperienceLevel, GoalType, BiologicalSex, AdaptationLocation } from "@fitness-app/shared";
+import type {
+  MuscleGroup,
+  TrainingContext,
+  ExperienceLevel,
+  GoalType,
+  BiologicalSex,
+  AdaptationLocation,
+  ActivityLevel,
+  NutritionPlanSource,
+  MealType,
+} from "@fitness-app/shared";
 
 export const GYM_MUSCLE_PICKER: MuscleGroup[] = [
   "quadriceps",
@@ -90,6 +100,26 @@ export const ADAPTATION_LOCATION_LABELS: Record<AdaptationLocation, string> = {
   gym: "Gimnasio",
   hotel: "Hotel / viaje",
   outdoor: "Aire libre",
+};
+
+export const ACTIVITY_LEVEL_LABELS: Record<ActivityLevel, string> = {
+  sedentary: "Sedentario (poco o ningún ejercicio)",
+  light: "Ligero (1-3 días/semana)",
+  moderate: "Moderado (3-5 días/semana)",
+  active: "Activo (6-7 días/semana)",
+  very_active: "Muy activo (entreno intenso a diario)",
+};
+
+export const NUTRITION_PLAN_SOURCE_LABELS: Record<NutritionPlanSource, string> = {
+  ai: "Generado con IA",
+  nutritionist: "De mi nutricionista",
+};
+
+export const MEAL_TYPE_LABELS: Record<MealType, string> = {
+  breakfast: "Desayuno",
+  lunch: "Almuerzo",
+  dinner: "Cena",
+  snack: "Snack",
 };
 
 export const TRAINING_CONTEXT_LABELS: Record<TrainingContext, string> = {

@@ -117,7 +117,12 @@ export {
   type NutritionItemRecord,
 } from "./data-access/nutrition-plan-content.repository.js";
 export { getActiveTargets, type NutrientTargetsRecord } from "./data-access/nutrient-targets.repository.js";
-export { getLogsForDate, type FoodLogRecord } from "./data-access/food-logs.repository.js";
+export {
+  getLogsForDate,
+  deleteFoodLog,
+  type FoodLogRecord,
+  type FoodLogItemRecord,
+} from "./data-access/food-logs.repository.js";
 
 export { importNutritionistPlan, type ImportPlanResult } from "./engines/nutrition/import-plan.js";
 export { generateAiNutritionPlan, type GeneratedPlanResult } from "./engines/nutrition/generate-ai-plan.js";
