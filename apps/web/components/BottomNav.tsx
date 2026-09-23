@@ -23,7 +23,7 @@ function NavLink({ href, label, icon: Icon, active }: { href: string; label: str
         active ? "text-accent" : "text-muted"
       }`}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className="h-7 w-7" />
       {label}
     </Link>
   );

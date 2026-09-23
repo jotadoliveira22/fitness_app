@@ -257,9 +257,9 @@ export function DumbbellFilledIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
       <g transform="rotate(45 12 12)">
-        <rect x="9.3" y="1.5" width="5.4" height="7.5" rx="2.2" />
-        <rect x="9.3" y="15" width="5.4" height="7.5" rx="2.2" />
-        <rect x="10.4" y="8.7" width="3.2" height="6.6" rx="1.2" />
+        <rect x="8.2" y="0.5" width="7.6" height="8.5" rx="3.4" />
+        <rect x="8.2" y="15" width="7.6" height="8.5" rx="3.4" />
+        <rect x="10.4" y="7.7" width="3.2" height="8.6" rx="1.4" />
       </g>
     </svg>
   );
@@ -268,18 +268,13 @@ export function DumbbellFilledIcon({ className }: IconProps) {
 export function NutritionFilledIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M12 8.3c-1-1.3-2.6-1.9-4.1-1.5C5.5 7.4 4 9.4 4 12c0 4 2.7 8.3 5.3 8.3.9 0 1.4-.4 2.7-.4s1.8.4 2.7.4C17.3 20.3 20 16 20 12c0-2.6-1.5-4.6-3.9-5.2-1.5-.4-3.1.2-4.1 1.5z" />
+      <path d="M12 7.6c-1-1.2-2.5-1.7-3.9-1.3C5.7 6.9 4.2 9 4.2 11.7c0 4.1 2.8 8.8 5.6 8.8.9 0 1.4-.4 2.2-.4s1.3.4 2.2.4c2.8 0 5.6-4.7 5.6-8.8 0-2.7-1.5-4.8-3.9-5.4-1.4-.4-2.9.1-3.9 1.3z" />
+      <path d="M12 7.2V3.6c1.3 0 2.3-.8 2.8-1.7" stroke="currentColor" strokeWidth={1.4} fill="none" strokeLinecap="round" />
+      <rect x="0" y="10.6" width="24" height="2.8" fill={NAV_CUTOUT} />
       <path
-        d="M12 8V4.3c1.4 0 2.4-.9 2.9-1.8"
-        stroke="currentColor"
-        strokeWidth={1.4}
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M2.2 12h5.6l1.3-2.4 1.7 4.4 1.4-2.8 1.1 0.8h8.5"
+        d="M2.5 12h3.6l1.7-3.3 2.2 6.6 2-5 1.4 1.7h8.1"
         stroke={NAV_CUTOUT}
-        strokeWidth={1.8}
+        strokeWidth={2.1}
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
