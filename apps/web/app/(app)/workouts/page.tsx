@@ -20,6 +20,7 @@ import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
 import { WorkoutTabs, type WorkoutTab } from "@/components/WorkoutTabs";
 import { RoutinesManager } from "@/components/RoutinesManager";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { ExerciseCatalogBrowser } from "@/components/ExerciseCatalogBrowser";
 import { BodyMuscleMap } from "@/components/BodyMuscleMap";
 import { ProgressRing } from "@/components/ProgressRing";
 import { AppHeader } from "@/components/AppHeader";
@@ -86,7 +87,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
     getActiveProgram(supabase, user.id).catch(() => null),
     listSessionsInRange(supabase, user.id, fromIso, toIso),
     listSessionsInRange(supabase, user.id, monthAgo.toISOString().slice(0, 10), toIso),
-    listExerciseCatalog(supabase, { limit: 200 }),
+    listExerciseCatalog(supabase, { limit: 2000 }),
     listRoutines(supabase, user.id),
     listSchedule(supabase, user.id),
     listEquipmentCatalog(supabase, "home"),
@@ -337,21 +338,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                 )}
           </>
         }
-        ejercicios={
-          <div className="space-y-2">
-            {catalog.map((ex) => (
-              <Link key={ex.id} href={`/workouts/exercise/${ex.id}`} className="card flex items-center gap-3">
-                <ExerciseThumb exercise={ex} className="h-12 w-12" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{ex.name}</p>
-                  <p className="text-xs text-muted">
-                    {MUSCLE_GROUP_LABELS[ex.primaryMuscleGroup]} · {ex.difficulty}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        }
+        ejercicios={<ExerciseCatalogBrowser catalog={catalog} />}
         misRutinas={
           <>
             {activeProgram && plan && (
