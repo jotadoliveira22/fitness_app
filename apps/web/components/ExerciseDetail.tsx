@@ -9,6 +9,8 @@ import { MUSCLE_GROUP_LABELS } from "@/lib/labels";
 import { ChevronRightIcon, FlameIcon, ClockIcon, PlusIcon, XIcon } from "@/components/icons";
 
 const MINUTE_PRESETS = [10, 15, 20, 30, 45, 60];
+const REST_PRESETS = [30, 45, 60, 90, 120];
+const CARDIO_MACHINES = ["stationary_bike", "treadmill", "elliptical", "rowing_machine"];
 
 interface ExerciseDetailProps {
   exercise: ExerciseRecord;
@@ -18,8 +20,13 @@ interface ExerciseDetailProps {
 
 export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction }: ExerciseDetailProps) {
   const router = useRouter();
+  const defaultMode = exercise.requiredEquipment.some((eq) => CARDIO_MACHINES.includes(eq)) ? "time" : "reps";
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [mode, setMode] = useState<"reps" | "time">(defaultMode);
   const [minutes, setMinutes] = useState(30);
+  const [targetSets, setTargetSets] = useState(3);
+  const [targetReps, setTargetReps] = useState("15");
+  const [restSeconds, setRestSeconds] = useState(60);
   const [target, setTarget] = useState<string>(routines[0]?.id ?? "new");
   const [newRoutineName, setNewRoutineName] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -32,7 +39,14 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
     setSubmitting(true);
     const fd = new FormData();
     fd.set("exerciseId", exercise.id);
-    fd.set("minutes", String(minutes));
+    fd.set("mode", mode);
+    fd.set("targetSets", String(targetSets));
+    fd.set("restSeconds", String(restSeconds));
+    if (mode === "reps") {
+      fd.set("targetReps", targetReps);
+    } else {
+      fd.set("minutes", String(minutes));
+    }
     if (target === "new") {
       fd.set("newRoutineName", newRoutineName.trim());
       fd.set("trainingContext", exercise.modalities[0] ?? "other");
@@ -106,30 +120,107 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
               </button>
             </div>
 
+            <div className="mb-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("reps")}
+                className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                  mode === "reps" ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                }`}
+              >
+                Series y repeticiones
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("time")}
+                className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                  mode === "time" ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                }`}
+              >
+                Tiempo
+              </button>
+            </div>
+
+            {mode === "reps" ? (
+              <>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">Series</label>
+                <div className="mb-4 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTargetSets((s) => Math.max(1, s - 1))}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-base font-bold"
+                  >
+                    −
+                  </button>
+                  <span className="w-8 text-center text-lg font-bold">{targetSets}</span>
+                  <button
+                    type="button"
+                    onClick={() => setTargetSets((s) => Math.min(10, s + 1))}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-base font-bold text-accent"
+                  >
+                    +
+                  </button>
+                </div>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  Repeticiones por serie
+                </label>
+                <input
+                  type="text"
+                  value={targetReps}
+                  onChange={(e) => setTargetReps(e.target.value)}
+                  placeholder="Ej. 15"
+                  className="mb-5 w-full rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-sm"
+                />
+              </>
+            ) : (
+              <>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  ¿Cuántos minutos?
+                </label>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {MINUTE_PRESETS.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMinutes(m)}
+                      className={`rounded-full px-3.5 py-2 text-xs font-semibold ${
+                        minutes === m ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                      }`}
+                    >
+                      {m} min
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  min={1}
+                  value={minutes}
+                  onChange={(e) => setMinutes(Number(e.target.value) || 0)}
+                  className="mb-5 w-full rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-sm"
+                />
+              </>
+            )}
+
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
-              ¿Cuántos minutos?
+              Descanso entre series
             </label>
-            <div className="mb-2 flex flex-wrap gap-2">
-              {MINUTE_PRESETS.map((m) => (
+            <p className="mb-2 text-[11px] text-muted">
+              Se usa como temporizador con alarma sonora al entrenar esta rutina.
+            </p>
+            <div className="mb-5 flex flex-wrap gap-2">
+              {REST_PRESETS.map((r) => (
                 <button
-                  key={m}
+                  key={r}
                   type="button"
-                  onClick={() => setMinutes(m)}
+                  onClick={() => setRestSeconds(r)}
                   className={`rounded-full px-3.5 py-2 text-xs font-semibold ${
-                    minutes === m ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                    restSeconds === r ? "bg-accent text-black" : "bg-surface-raised text-muted"
                   }`}
                 >
-                  {m} min
+                  {r}s
                 </button>
               ))}
             </div>
-            <input
-              type="number"
-              min={1}
-              value={minutes}
-              onChange={(e) => setMinutes(Number(e.target.value) || 0)}
-              className="mb-5 w-full rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-sm"
-            />
 
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
               ¿A qué rutina?

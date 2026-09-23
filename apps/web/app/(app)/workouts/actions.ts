@@ -142,18 +142,32 @@ export async function addExerciseByMinutesAction(formData: FormData) {
   if (!user) return;
 
   const exerciseId = String(formData.get("exerciseId") ?? "");
-  const minutes = Number(formData.get("minutes"));
+  const mode = String(formData.get("mode") ?? "time");
+  const targetSets = Math.max(1, Number(formData.get("targetSets")) || 1);
+  const restSeconds = Number(formData.get("restSeconds")) || undefined;
   const routineId = String(formData.get("routineId") ?? "");
   const newRoutineName = String(formData.get("newRoutineName") ?? "").trim();
   const trainingContext = String(formData.get("trainingContext") ?? "") as TrainingContext;
-  if (!exerciseId || !minutes || minutes <= 0) return;
+  if (!exerciseId) return;
 
-  const exerciseInput = {
-    exerciseId,
-    orderIndex: 0,
-    targetSets: 1,
-    targetDurationSeconds: minutes * 60,
-  };
+  const exerciseInput: {
+    exerciseId: string;
+    orderIndex: number;
+    targetSets: number;
+    targetReps?: string;
+    targetDurationSeconds?: number;
+    restSeconds?: number;
+  } = { exerciseId, orderIndex: 0, targetSets, restSeconds };
+
+  if (mode === "reps") {
+    const targetReps = String(formData.get("targetReps") ?? "").trim();
+    if (!targetReps) return;
+    exerciseInput.targetReps = targetReps;
+  } else {
+    const minutes = Number(formData.get("minutes"));
+    if (!minutes || minutes <= 0) return;
+    exerciseInput.targetDurationSeconds = minutes * 60;
+  }
 
   if (routineId) {
     await addExerciseToRoutine(supabase, routineId, exerciseInput);

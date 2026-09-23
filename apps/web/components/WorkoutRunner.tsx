@@ -19,6 +19,29 @@ function parseTargetReps(targetReps: string | null): number | null {
   return match ? Number(match[0]) : null;
 }
 
+/** Alarma simple (3 beeps) cuando termina el descanso, sin depender de un archivo de audio. */
+function playRestAlarm() {
+  try {
+    const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new AudioCtx();
+    [0, 0.25, 0.5].forEach((offset) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime + offset);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.2);
+    });
+  } catch {
+    // Audio no disponible (ej. autoplay bloqueado); el temporizador visual sigue funcionando.
+  }
+}
+
 interface WorkoutRunnerProps {
   sessionId: string;
   objective: string | null;
@@ -46,6 +69,7 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
   useEffect(() => {
     if (restSeconds === null) return;
     if (restSeconds <= 0) {
+      playRestAlarm();
       const t = setTimeout(() => setRestSeconds(null), 1200);
       return () => clearTimeout(t);
     }
