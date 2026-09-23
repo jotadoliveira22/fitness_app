@@ -66,9 +66,9 @@ export function QuickAddSheet() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Agregar"
-        className="relative z-20 -mt-7 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-accent text-black shadow-lg shadow-accent/30"
+        className="relative z-20 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-4 border-surface bg-accent text-black shadow-lg shadow-accent/40"
       >
-        <PlusIcon className="h-6 w-6" />
+        <PlusIcon className="h-7 w-7" />
       </button>
 
       {open && (

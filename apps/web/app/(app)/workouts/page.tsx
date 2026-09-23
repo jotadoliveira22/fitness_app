@@ -18,9 +18,11 @@ import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
+import type { MuscleGroup } from "@fitness-app/shared";
 import { WorkoutTabs, type WorkoutTab } from "@/components/WorkoutTabs";
 import { RoutinesManager } from "@/components/RoutinesManager";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { BodyMuscleMap } from "@/components/BodyMuscleMap";
 import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon, PlusIcon } from "@/components/icons";
 import {
   createRoutineAction,
@@ -101,7 +103,15 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
   const plan = activeProgram ? computePlanProgress(activeProgram) : null;
 
   const sessionsByDate = new Map(weekSessions.map((s) => [s.scheduledDate, s]));
-  const completedCount = weekSessions.filter((s) => s.status === "completed").length;
+  const completedThisWeek = weekSessions.filter((s) => s.status === "completed");
+  const completedCount = completedThisWeek.length;
+
+  const weekExercisesLists = await Promise.all(
+    completedThisWeek.map((s) => getWorkoutExercisesForSession(supabase, s.id)),
+  );
+  const musclesWorkedThisWeek = Array.from(
+    new Set(weekExercisesLists.flat().map((we) => we.exercise?.primaryMuscleGroup).filter(Boolean)),
+  ) as MuscleGroup[];
 
   const recentCompleted = recentSessions
     .filter((s) => s.status === "completed" && s.completedAt)
@@ -172,9 +182,18 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                           </span>
                         )}
                       </div>
-                      <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black">
-                        {today.workout.status === "completed" ? "Ver resumen" : "Iniciar entrenamiento"} →
-                      </button>
+                      {today.workout.status === "completed" ? (
+                        <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-surface-raised px-4 py-2.5 text-xs font-bold text-muted">
+                          Completado hoy ✓
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/workouts/session/${today.workout.sessionId}`}
+                          className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black"
+                        >
+                          Iniciar entrenamiento →
+                        </Link>
+                      )}
                     </div>
                     <img
                       src={getWorkoutPhoto(today.workout.trainingContext)}
@@ -263,6 +282,15 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                     <FlameIcon className="h-4 w-4 text-accent" />
                     <span className="font-semibold text-white">{stats.weekStreak}</span> semanas de racha
                   </div>
+                </div>
+
+                <div className="card mb-5">
+                  <p className="mb-1 text-sm font-semibold">Músculos trabajados esta semana</p>
+                  {musclesWorkedThisWeek.length > 0 ? (
+                    <BodyMuscleMap activeMuscles={musclesWorkedThisWeek} />
+                  ) : (
+                    <p className="text-xs text-muted">Todavía no completas ningún entrenamiento esta semana.</p>
+                  )}
                 </div>
 
                 {plan && activeProgram && (

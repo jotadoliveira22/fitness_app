@@ -86,7 +86,7 @@ export default async function HomePage() {
 
       {today.workout ? (
         <Link
-          href="/workouts"
+          href={today.workout.status === "completed" ? "/workouts" : `/workouts/session/${today.workout.sessionId}`}
           className="relative mb-5 block overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/15 via-surface to-surface p-5"
         >
           <div className="relative z-10 max-w-[62%]">

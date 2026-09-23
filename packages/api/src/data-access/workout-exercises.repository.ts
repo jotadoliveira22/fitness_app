@@ -35,6 +35,8 @@ export interface InsertWorkoutExerciseInput {
   orderIndex: number;
   targetSets: number;
   targetReps?: string;
+  targetWeightKg?: number;
+  targetDurationSeconds?: number;
   restSeconds?: number;
 }
 
@@ -51,6 +53,8 @@ export async function insertWorkoutExercises(
     order_index: exercise.orderIndex,
     target_sets: exercise.targetSets,
     target_reps: exercise.targetReps ?? null,
+    target_weight_kg: exercise.targetWeightKg ?? null,
+    target_duration_seconds: exercise.targetDurationSeconds ?? null,
     rest_seconds: exercise.restSeconds ?? null,
   }));
 

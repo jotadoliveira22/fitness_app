@@ -13,18 +13,17 @@ import {
   SPECIAL_ACTIVITIES,
 } from "@/lib/labels";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { BodyMuscleMap } from "@/components/BodyMuscleMap";
+import { ExerciseParamSheet, type ExerciseParams } from "@/components/ExerciseParamSheet";
 import { DumbbellIcon, TrashIcon, PlusIcon, ChevronRightIcon } from "@/components/icons";
 
 type Step = "location" | "home-equipment" | "gym-equipment" | "gym-muscle" | "outdoor-sport" | "special-activity" | "exercises" | "details";
 type Bucket = "home" | "gym" | "outdoor" | "special";
 
-interface SelectedExercise {
+interface SelectedExercise extends ExerciseParams {
   exerciseId: string;
   name: string;
   modalities: TrainingContext[];
-  targetSets: number;
-  targetReps: string;
-  restSeconds: number;
 }
 
 interface RoutineWizardProps {
@@ -66,6 +65,7 @@ export function RoutineWizard({
   const [savingEquipment, setSavingEquipment] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<SelectedExercise[]>([]);
+  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -136,18 +136,31 @@ export function RoutineWizard({
 
   function addExercise(ex: ExerciseRecord) {
     if (selected.some((s) => s.exerciseId === ex.id)) return;
+    const isTimeBased = ex.movementPattern === "cardio";
     setSelected((prev) => [
       ...prev,
-      { exerciseId: ex.id, name: ex.name, modalities: ex.modalities, targetSets: 3, targetReps: "10-12", restSeconds: 60 },
+      {
+        exerciseId: ex.id,
+        name: ex.name,
+        modalities: ex.modalities,
+        mode: isTimeBased ? "time" : "reps",
+        targetSets: 3,
+        targetReps: "10-12",
+        targetWeightKg: null,
+        targetDurationSeconds: isTimeBased ? 30 : null,
+        restSeconds: 60,
+      },
     ]);
+    setEditingExerciseId(ex.id);
   }
 
   function removeExercise(exerciseId: string) {
     setSelected((prev) => prev.filter((s) => s.exerciseId !== exerciseId));
   }
 
-  function updateExercise(exerciseId: string, patch: Partial<SelectedExercise>) {
-    setSelected((prev) => prev.map((s) => (s.exerciseId === exerciseId ? { ...s, ...patch } : s)));
+  function saveExerciseParams(exerciseId: string, params: ExerciseParams) {
+    setSelected((prev) => prev.map((s) => (s.exerciseId === exerciseId ? { ...s, ...params } : s)));
+    setEditingExerciseId(null);
   }
 
   async function submitRoutine() {
@@ -156,11 +169,13 @@ export function RoutineWizard({
     const fd = new FormData();
     fd.set("name", name.trim());
     fd.set("trainingContext", context);
-    fd.set("exercisesJson", JSON.stringify(selected.map(({ name: _n, modalities: _m, ...rest }) => rest)));
+    fd.set("exercisesJson", JSON.stringify(selected.map(({ name: _n, modalities: _m, mode: _mo, ...rest }) => rest)));
     await createRoutineAction(fd);
     setSubmitting(false);
     onFinished();
   }
+
+  const editingExercise = selected.find((s) => s.exerciseId === editingExerciseId) ?? null;
 
   return (
     <div className="card mb-4 space-y-4 border-accent/20">
@@ -215,6 +230,7 @@ export function RoutineWizard({
             ← Atrás
           </button>
           <p className="mb-3 text-sm font-semibold">¿Qué músculo quieres trabajar?</p>
+          <BodyMuscleMap activeMuscles={muscle ? [muscle] : []} onSelect={pickMuscle} className="mb-4" />
           <div className="flex flex-wrap gap-2">
             {GYM_MUSCLE_PICKER.map((m) => (
               <button
@@ -301,31 +317,18 @@ export function RoutineWizard({
               {selected.map((ex) => (
                 <div key={ex.exerciseId} className="flex items-center gap-2.5 rounded-xl bg-surface-raised p-2">
                   <ExerciseThumb exercise={{ modalities: ex.modalities }} className="h-10 w-10" />
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold">{ex.name}</span>
-                  <div className="flex flex-shrink-0 items-center gap-1 rounded-full bg-surface px-1">
-                    <button
-                      type="button"
-                      onClick={() => updateExercise(ex.exerciseId, { targetSets: Math.max(1, ex.targetSets - 1) })}
-                      className="flex h-6 w-6 items-center justify-center text-sm font-bold text-muted"
-                    >
-                      −
-                    </button>
-                    <span className="w-4 text-center text-[11px] font-bold">{ex.targetSets}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateExercise(ex.exerciseId, { targetSets: Math.min(10, ex.targetSets + 1) })}
-                      className="flex h-6 w-6 items-center justify-center text-sm font-bold text-accent"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={ex.targetReps}
-                    onChange={(e) => updateExercise(ex.exerciseId, { targetReps: e.target.value })}
-                    aria-label="Repeticiones"
-                    className="w-14 flex-shrink-0 rounded-lg border border-border bg-surface px-1 py-1 text-center text-[11px]"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditingExerciseId(ex.exerciseId)}
+                    className="min-w-0 flex-1 text-left"
+                  >
+                    <p className="truncate text-xs font-semibold">{ex.name}</p>
+                    <p className="truncate text-[10px] text-muted">
+                      {ex.targetSets} series ·{" "}
+                      {ex.mode === "time" ? `${ex.targetDurationSeconds ?? 0}s` : ex.targetReps}
+                      {ex.targetWeightKg ? ` · ${ex.targetWeightKg}kg` : ""} · {ex.restSeconds}s descanso
+                    </p>
+                  </button>
                   <button type="button" onClick={() => removeExercise(ex.exerciseId)} className="flex-shrink-0">
                     <TrashIcon className="h-3.5 w-3.5 text-muted" />
                   </button>
@@ -406,6 +409,23 @@ export function RoutineWizard({
             {submitting ? "Guardando..." : "Guardar rutina"}
           </button>
         </div>
+      )}
+
+      {editingExercise && (
+        <ExerciseParamSheet
+          name={editingExercise.name}
+          modalities={editingExercise.modalities}
+          initial={{
+            mode: editingExercise.mode,
+            targetSets: editingExercise.targetSets,
+            targetReps: editingExercise.targetReps,
+            targetWeightKg: editingExercise.targetWeightKg,
+            targetDurationSeconds: editingExercise.targetDurationSeconds,
+            restSeconds: editingExercise.restSeconds,
+          }}
+          onSave={(params) => saveExerciseParams(editingExercise.exerciseId, params)}
+          onClose={() => setEditingExerciseId(null)}
+        />
       )}
     </div>
   );

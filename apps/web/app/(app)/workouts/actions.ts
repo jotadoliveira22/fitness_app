@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { TrainingContext } from "@fitness-app/shared";
 import {
   insertRoutine,
@@ -10,6 +11,7 @@ import {
   materializeRoutineForDate,
   setUserEquipmentForContext,
   updateOwnPreferences,
+  completeWorkout,
 } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,6 +19,8 @@ interface RoutineExerciseInput {
   exerciseId: string;
   targetSets: number;
   targetReps?: string;
+  targetWeightKg?: number | null;
+  targetDurationSeconds?: number | null;
   restSeconds?: number;
 }
 
@@ -49,6 +53,8 @@ export async function createRoutineAction(formData: FormData) {
       orderIndex: index,
       targetSets: exercise.targetSets,
       targetReps: exercise.targetReps,
+      targetWeightKg: exercise.targetWeightKg ?? undefined,
+      targetDurationSeconds: exercise.targetDurationSeconds ?? undefined,
       restSeconds: exercise.restSeconds,
     })),
   });
@@ -121,7 +127,31 @@ export async function startScheduledRoutineAction(formData: FormData) {
   const date = String(formData.get("date") ?? "");
   if (!routineId || !date) return;
 
-  await materializeRoutineForDate(supabase, user.id, routineId, date);
+  const session = await materializeRoutineForDate(supabase, user.id, routineId, date);
   revalidatePath("/workouts");
   revalidatePath("/home");
+  redirect(`/workouts/session/${session.id}`);
+}
+
+export interface LoggedSetInput {
+  workoutExerciseId: string;
+  setNumber: number;
+  reps?: number;
+  weightKg?: number;
+  durationSeconds?: number;
+}
+
+export async function completeWorkoutAction(sessionId: string, sets: LoggedSetInput[]) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await completeWorkout(supabase, user.id, { workoutId: sessionId, sets });
+
+  revalidatePath("/workouts");
+  revalidatePath("/home");
+  revalidatePath("/progress");
+  redirect("/workouts");
 }

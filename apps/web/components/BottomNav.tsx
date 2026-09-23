@@ -35,16 +35,20 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t border-border bg-surface/95 backdrop-blur">
-      <div className="flex items-center justify-around px-1 py-3">
+      <div className="relative grid grid-cols-5 items-center px-1 py-3">
         {LEFT_ITEMS.map((item) => (
           <NavLink key={item.href} {...item} active={pathname.startsWith(item.href)} />
         ))}
-
-        <QuickAddSheet />
-
+        <div />
         {RIGHT_ITEMS.map((item) => (
           <NavLink key={item.href} {...item} active={pathname.startsWith(item.href)} />
         ))}
+
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex -translate-y-1/2 justify-center">
+          <div className="pointer-events-auto">
+            <QuickAddSheet />
+          </div>
+        </div>
       </div>
     </nav>
   );

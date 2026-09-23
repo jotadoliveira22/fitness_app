@@ -41,6 +41,8 @@ export async function materializeRoutineForDate(
         orderIndex: exercise.orderIndex,
         targetSets: exercise.targetSets,
         ...(exercise.targetReps ? { targetReps: exercise.targetReps } : {}),
+        ...(exercise.targetWeightKg ? { targetWeightKg: exercise.targetWeightKg } : {}),
+        ...(exercise.targetDurationSeconds ? { targetDurationSeconds: exercise.targetDurationSeconds } : {}),
         ...(exercise.restSeconds ? { restSeconds: exercise.restSeconds } : {}),
       })),
     );

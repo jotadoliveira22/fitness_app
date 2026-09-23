@@ -41,6 +41,8 @@ export interface RoutineExerciseRecord {
   orderIndex: number;
   targetSets: number;
   targetReps: string | null;
+  targetWeightKg: number | null;
+  targetDurationSeconds: number | null;
   restSeconds: number | null;
   exercise: ExerciseRecord | null;
 }
@@ -52,11 +54,13 @@ interface RoutineExerciseRow {
   order_index: number;
   target_sets: number;
   target_reps: string | null;
+  target_weight_kg: number | null;
+  target_duration_seconds: number | null;
   rest_seconds: number | null;
 }
 
 const ROUTINE_EXERCISE_COLUMNS =
-  "id, routine_id, exercise_id, order_index, target_sets, target_reps, rest_seconds";
+  "id, routine_id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, target_duration_seconds, rest_seconds";
 
 function toRoutineExerciseRecord(row: RoutineExerciseRow): RoutineExerciseRecord {
   return {
@@ -66,6 +70,8 @@ function toRoutineExerciseRecord(row: RoutineExerciseRow): RoutineExerciseRecord
     orderIndex: row.order_index,
     targetSets: row.target_sets,
     targetReps: row.target_reps,
+    targetWeightKg: row.target_weight_kg,
+    targetDurationSeconds: row.target_duration_seconds,
     restSeconds: row.rest_seconds,
     exercise: null,
   };
@@ -76,6 +82,8 @@ export interface InsertRoutineExerciseInput {
   orderIndex: number;
   targetSets: number;
   targetReps?: string;
+  targetWeightKg?: number;
+  targetDurationSeconds?: number;
   restSeconds?: number;
 }
 
@@ -154,6 +162,8 @@ export async function insertRoutine(
       order_index: exercise.orderIndex,
       target_sets: exercise.targetSets,
       target_reps: exercise.targetReps ?? null,
+      target_weight_kg: exercise.targetWeightKg ?? null,
+      target_duration_seconds: exercise.targetDurationSeconds ?? null,
       rest_seconds: exercise.restSeconds ?? null,
     }));
     const { error: exercisesError } = await client.from("routine_exercises").insert(rows);
