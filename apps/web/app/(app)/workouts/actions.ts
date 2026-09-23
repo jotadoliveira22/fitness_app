@@ -156,6 +156,7 @@ export async function addExerciseByMinutesAction(formData: FormData) {
     targetSets: number;
     targetReps?: string;
     targetDurationSeconds?: number;
+    targetDistanceM?: number;
     restSeconds?: number;
   } = { exerciseId, orderIndex: 0, targetSets, restSeconds };
 
@@ -163,6 +164,10 @@ export async function addExerciseByMinutesAction(formData: FormData) {
     const targetReps = String(formData.get("targetReps") ?? "").trim();
     if (!targetReps) return;
     exerciseInput.targetReps = targetReps;
+  } else if (mode === "distance") {
+    const distanceKm = Number(formData.get("distanceKm"));
+    if (!distanceKm || distanceKm <= 0) return;
+    exerciseInput.targetDistanceM = distanceKm * 1000;
   } else {
     const minutes = Number(formData.get("minutes"));
     if (!minutes || minutes <= 0) return;
@@ -191,6 +196,7 @@ export interface LoggedSetInput {
   reps?: number;
   weightKg?: number;
   durationSeconds?: number;
+  distanceM?: number;
 }
 
 export async function completeWorkoutAction(sessionId: string, sets: LoggedSetInput[]) {

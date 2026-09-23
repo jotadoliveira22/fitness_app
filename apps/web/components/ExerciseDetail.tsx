@@ -10,6 +10,7 @@ import { ChevronRightIcon, FlameIcon, ClockIcon, PlusIcon, XIcon } from "@/compo
 
 const MINUTE_PRESETS = [10, 15, 20, 30, 45, 60];
 const REST_PRESETS = [30, 45, 60, 90, 120];
+const KM_PRESETS = [1, 2, 3, 5, 10];
 
 interface ExerciseDetailProps {
   exercise: ExerciseRecord;
@@ -21,7 +22,9 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
   const router = useRouter();
   const mode = exercise.trackingMode;
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [distanceSubMode, setDistanceSubMode] = useState<"time" | "distance">("distance");
   const [minutes, setMinutes] = useState(30);
+  const [distanceKm, setDistanceKm] = useState(5);
   const [targetSets, setTargetSets] = useState(3);
   const [targetReps, setTargetReps] = useState("15");
   const [restSeconds, setRestSeconds] = useState(60);
@@ -30,6 +33,7 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
   const [submitting, setSubmitting] = useState(false);
 
   const heroPhoto = exercise.mediaUrl ?? getWorkoutPhoto(exercise.modalities[0]);
+  const effectiveMode = mode === "distance" ? distanceSubMode : mode;
 
   async function confirm() {
     if (target !== "new" && !target) return;
@@ -37,11 +41,13 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
     setSubmitting(true);
     const fd = new FormData();
     fd.set("exerciseId", exercise.id);
-    fd.set("mode", mode);
+    fd.set("mode", effectiveMode);
     fd.set("targetSets", String(targetSets));
-    if (mode === "reps") {
+    if (effectiveMode === "reps") {
       fd.set("targetReps", targetReps);
       fd.set("restSeconds", String(restSeconds));
+    } else if (effectiveMode === "distance") {
+      fd.set("distanceKm", String(distanceKm));
     } else {
       fd.set("minutes", String(minutes));
     }
@@ -118,7 +124,30 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
               </button>
             </div>
 
-            {mode === "reps" ? (
+            {mode === "distance" && (
+              <div className="mb-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDistanceSubMode("distance")}
+                  className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                    distanceSubMode === "distance" ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                  }`}
+                >
+                  Distancia (km)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDistanceSubMode("time")}
+                  className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                    distanceSubMode === "time" ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                  }`}
+                >
+                  Tiempo
+                </button>
+              </div>
+            )}
+
+            {effectiveMode === "reps" ? (
               <>
                 <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">Series</label>
                 <div className="mb-4 flex items-center gap-3">
@@ -146,6 +175,34 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
                   value={targetReps}
                   onChange={(e) => setTargetReps(e.target.value)}
                   placeholder="Ej. 15"
+                  className="mb-5 w-full rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-sm"
+                />
+              </>
+            ) : effectiveMode === "distance" ? (
+              <>
+                <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  ¿Cuántos kilómetros?
+                </label>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {KM_PRESETS.map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setDistanceKm(k)}
+                      className={`rounded-full px-3.5 py-2 text-xs font-semibold ${
+                        distanceKm === k ? "bg-accent text-black" : "bg-surface-raised text-muted"
+                      }`}
+                    >
+                      {k} km
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  value={distanceKm}
+                  onChange={(e) => setDistanceKm(Number(e.target.value) || 0)}
                   className="mb-5 w-full rounded-xl border border-border bg-surface-raised px-3 py-2.5 text-sm"
                 />
               </>
@@ -178,7 +235,7 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
               </>
             )}
 
-            {mode === "reps" && (
+            {effectiveMode === "reps" && (
               <>
                 <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">
                   Descanso entre series

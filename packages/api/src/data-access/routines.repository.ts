@@ -43,6 +43,7 @@ export interface RoutineExerciseRecord {
   targetReps: string | null;
   targetWeightKg: number | null;
   targetDurationSeconds: number | null;
+  targetDistanceM: number | null;
   restSeconds: number | null;
   exercise: ExerciseRecord | null;
 }
@@ -56,11 +57,12 @@ interface RoutineExerciseRow {
   target_reps: string | null;
   target_weight_kg: number | null;
   target_duration_seconds: number | null;
+  target_distance_m: number | null;
   rest_seconds: number | null;
 }
 
 const ROUTINE_EXERCISE_COLUMNS =
-  "id, routine_id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, target_duration_seconds, rest_seconds";
+  "id, routine_id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, target_duration_seconds, target_distance_m, rest_seconds";
 
 function toRoutineExerciseRecord(row: RoutineExerciseRow): RoutineExerciseRecord {
   return {
@@ -72,6 +74,7 @@ function toRoutineExerciseRecord(row: RoutineExerciseRow): RoutineExerciseRecord
     targetReps: row.target_reps,
     targetWeightKg: row.target_weight_kg,
     targetDurationSeconds: row.target_duration_seconds,
+    targetDistanceM: row.target_distance_m,
     restSeconds: row.rest_seconds,
     exercise: null,
   };
@@ -84,6 +87,7 @@ export interface InsertRoutineExerciseInput {
   targetReps?: string;
   targetWeightKg?: number;
   targetDurationSeconds?: number;
+  targetDistanceM?: number;
   restSeconds?: number;
 }
 
@@ -164,6 +168,7 @@ export async function insertRoutine(
       target_reps: exercise.targetReps ?? null,
       target_weight_kg: exercise.targetWeightKg ?? null,
       target_duration_seconds: exercise.targetDurationSeconds ?? null,
+      target_distance_m: exercise.targetDistanceM ?? null,
       rest_seconds: exercise.restSeconds ?? null,
     }));
     const { error: exercisesError } = await client.from("routine_exercises").insert(rows);
@@ -196,6 +201,7 @@ export async function addExerciseToRoutine(
     target_reps: exercise.targetReps ?? null,
     target_weight_kg: exercise.targetWeightKg ?? null,
     target_duration_seconds: exercise.targetDurationSeconds ?? null,
+    target_distance_m: exercise.targetDistanceM ?? null,
     rest_seconds: exercise.restSeconds ?? null,
   });
   if (error) throw new DataAccessError("No se pudo agregar el ejercicio a la rutina", error);

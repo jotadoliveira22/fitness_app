@@ -36,5 +36,5 @@ export type ProgramStatus = (typeof PROGRAM_STATUSES)[number];
 export const SESSION_STATUSES = ["planned", "completed", "skipped", "adapted"] as const;
 export type SessionStatus = (typeof SESSION_STATUSES)[number];
 
-export const EXERCISE_TRACKING_MODES = ["reps", "time"] as const;
+export const EXERCISE_TRACKING_MODES = ["reps", "time", "distance"] as const;
 export type ExerciseTrackingMode = (typeof EXERCISE_TRACKING_MODES)[number];

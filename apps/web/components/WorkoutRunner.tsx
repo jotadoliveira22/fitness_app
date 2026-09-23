@@ -10,6 +10,7 @@ interface SetState {
   reps: number | null;
   weightKg: number | null;
   durationSeconds: number | null;
+  distanceM: number | null;
   done: boolean;
 }
 
@@ -58,6 +59,7 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
         reps: parseTargetReps(ex.targetReps),
         weightKg: ex.targetWeightKg,
         durationSeconds: ex.targetDurationSeconds,
+        distanceM: ex.targetDistanceM,
         done: false,
       }));
     }
@@ -108,6 +110,7 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
           ...(s.reps != null ? { reps: s.reps } : {}),
           ...(s.weightKg != null ? { weightKg: s.weightKg } : {}),
           ...(s.durationSeconds != null ? { durationSeconds: s.durationSeconds } : {}),
+          ...(s.distanceM != null ? { distanceM: s.distanceM } : {}),
         });
       });
     }
@@ -135,11 +138,13 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
           <p className="truncate font-display text-base font-extrabold">{currentExercise.exercise?.name ?? "Ejercicio"}</p>
           <p className="text-xs text-muted">
             {currentExercise.targetSets} series
-            {currentExercise.targetDurationSeconds
-              ? ` · ${currentExercise.targetDurationSeconds}s`
-              : currentExercise.targetReps
-                ? ` · ${currentExercise.targetReps}`
-                : ""}
+            {currentExercise.targetDistanceM
+              ? ` · ${(currentExercise.targetDistanceM / 1000).toFixed(1)}km`
+              : currentExercise.targetDurationSeconds
+                ? ` · ${currentExercise.targetDurationSeconds}s`
+                : currentExercise.targetReps
+                  ? ` · ${currentExercise.targetReps}`
+                  : ""}
             {currentExercise.targetWeightKg ? ` · ${currentExercise.targetWeightKg}kg` : ""}
           </p>
         </div>
@@ -151,7 +156,24 @@ export function WorkoutRunner({ sessionId, objective, exercises, completeWorkout
             <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-surface-raised text-xs font-bold">
               {i + 1}
             </span>
-            {currentExercise.targetDurationSeconds ? (
+            {currentExercise.targetDistanceM ? (
+              <div className="flex flex-1 items-center gap-2 text-xs">
+                <input
+                  type="number"
+                  step="0.1"
+                  value={set.distanceM != null ? set.distanceM / 1000 : ""}
+                  onChange={(e) =>
+                    updateSet(currentExercise.id, i, {
+                      distanceM: e.target.value ? Number(e.target.value) * 1000 : null,
+                    })
+                  }
+                  disabled={set.done}
+                  placeholder="km"
+                  className="w-16 rounded-lg border border-border bg-surface-raised px-2 py-1.5 text-center"
+                />
+                <span className="text-muted">km</span>
+              </div>
+            ) : currentExercise.targetDurationSeconds ? (
               <span className="flex-1 text-xs text-muted">{set.durationSeconds ?? currentExercise.targetDurationSeconds}s</span>
             ) : (
               <div className="flex flex-1 items-center gap-2 text-xs">

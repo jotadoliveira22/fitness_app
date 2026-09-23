@@ -11,6 +11,7 @@ export interface WorkoutExerciseRecord {
   targetReps: string | null;
   targetWeightKg: number | null;
   targetDurationSeconds: number | null;
+  targetDistanceM: number | null;
   restSeconds: number | null;
   exercise: ExerciseRecord | null;
 }
@@ -24,11 +25,12 @@ interface WorkoutExerciseRow {
   target_reps: string | null;
   target_weight_kg: number | null;
   target_duration_seconds: number | null;
+  target_distance_m: number | null;
   rest_seconds: number | null;
 }
 
 const COLUMNS =
-  "id, session_id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, target_duration_seconds, rest_seconds";
+  "id, session_id, exercise_id, order_index, target_sets, target_reps, target_weight_kg, target_duration_seconds, target_distance_m, rest_seconds";
 
 export interface InsertWorkoutExerciseInput {
   exerciseId: string;
@@ -37,6 +39,7 @@ export interface InsertWorkoutExerciseInput {
   targetReps?: string;
   targetWeightKg?: number;
   targetDurationSeconds?: number;
+  targetDistanceM?: number;
   restSeconds?: number;
 }
 
@@ -55,6 +58,7 @@ export async function insertWorkoutExercises(
     target_reps: exercise.targetReps ?? null,
     target_weight_kg: exercise.targetWeightKg ?? null,
     target_duration_seconds: exercise.targetDurationSeconds ?? null,
+    target_distance_m: exercise.targetDistanceM ?? null,
     rest_seconds: exercise.restSeconds ?? null,
   }));
 
@@ -73,6 +77,7 @@ function toRecordWithoutExercise(row: WorkoutExerciseRow): WorkoutExerciseRecord
     targetReps: row.target_reps,
     targetWeightKg: row.target_weight_kg,
     targetDurationSeconds: row.target_duration_seconds,
+    targetDistanceM: row.target_distance_m,
     restSeconds: row.rest_seconds,
     exercise: null,
   };
