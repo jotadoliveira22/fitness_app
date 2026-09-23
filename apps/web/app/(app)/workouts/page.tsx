@@ -18,11 +18,12 @@ import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { MUSCLE_GROUP_LABELS, TRAINING_CONTEXT_LABELS } from "@/lib/labels";
-import type { MuscleGroup } from "@fitness-app/shared";
 import { WorkoutTabs, type WorkoutTab } from "@/components/WorkoutTabs";
 import { RoutinesManager } from "@/components/RoutinesManager";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { BodyMuscleMap } from "@/components/BodyMuscleMap";
+import { ProgressRing } from "@/components/ProgressRing";
+import { computeMuscleVolume } from "@/lib/muscle-volume";
 import { BellIcon, ClockIcon, DumbbellIcon, TrendingUpIcon, CheckCircleIcon, FlameIcon, PlusIcon } from "@/components/icons";
 import {
   createRoutineAction,
@@ -109,9 +110,8 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
   const weekExercisesLists = await Promise.all(
     completedThisWeek.map((s) => getWorkoutExercisesForSession(supabase, s.id)),
   );
-  const musclesWorkedThisWeek = Array.from(
-    new Set(weekExercisesLists.flat().map((we) => we.exercise?.primaryMuscleGroup).filter(Boolean)),
-  ) as MuscleGroup[];
+  const muscleVolume = computeMuscleVolume(weekExercisesLists.flat());
+  const musclesWorkedThisWeek = muscleVolume.map((m) => m.muscle);
 
   const recentCompleted = recentSessions
     .filter((s) => s.status === "completed" && s.completedAt)
@@ -284,10 +284,26 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                   </div>
                 </div>
 
-                <div className="card mb-5">
-                  <p className="mb-1 text-sm font-semibold">Músculos trabajados esta semana</p>
-                  {musclesWorkedThisWeek.length > 0 ? (
-                    <BodyMuscleMap activeMuscles={musclesWorkedThisWeek} />
+                <div className="card mb-5 border-accent/10 bg-gradient-to-b from-accent/5 via-surface to-surface">
+                  <p className="mb-0.5 text-sm font-semibold">Músculos trabajados esta semana</p>
+                  {muscleVolume.length > 0 ? (
+                    <>
+                      <p className="mb-3 text-[10px] text-muted">
+                        % del volumen semanal recomendado por grupo muscular, según tus series reales.
+                      </p>
+                      <BodyMuscleMap activeMuscles={musclesWorkedThisWeek} className="mb-4" />
+                      <div className="grid grid-cols-3 gap-3">
+                        {muscleVolume.map((m) => (
+                          <div key={m.muscle} className="flex flex-col items-center gap-1.5">
+                            <ProgressRing percent={m.percent} size={64} />
+                            <span className="text-center text-[10px] font-semibold leading-tight">
+                              {MUSCLE_GROUP_LABELS[m.muscle]}
+                            </span>
+                            <span className="text-[9px] text-muted">{m.sets} series</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   ) : (
                     <p className="text-xs text-muted">Todavía no completas ningún entrenamiento esta semana.</p>
                   )}

@@ -66,9 +66,21 @@ function RegionShape({
         "aria-label": MUSCLE_GROUP_LABELS[region.muscle],
       }
     : {};
+  const glow = active ? { filter: "url(#muscleGlow)" } : undefined;
 
   if (region.shape === "circle") {
-    return <circle cx={region.cx} cy={region.cy} r={region.r} className={className} stroke="#0B0B0C" strokeWidth={1} {...props} />;
+    return (
+      <circle
+        cx={region.cx}
+        cy={region.cy}
+        r={region.r}
+        className={className}
+        stroke="#0B0B0C"
+        strokeWidth={1}
+        style={glow}
+        {...props}
+      />
+    );
   }
   return (
     <rect
@@ -80,6 +92,7 @@ function RegionShape({
       className={className}
       stroke="#0B0B0C"
       strokeWidth={1}
+      style={glow}
       {...props}
     />
   );
@@ -104,6 +117,15 @@ export function BodyMuscleMap({ activeMuscles, onSelect, className }: BodyMuscle
   return (
     <div className={className}>
       <svg viewBox="0 0 340 275" className="w-full">
+        <defs>
+          <filter id="muscleGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         {/* cabezas, decorativas */}
         <circle cx={70} cy={25} r={16} className="fill-surface-raised" stroke="#0B0B0C" strokeWidth={1} />
         <circle cx={70 + OX} cy={25} r={16} className="fill-surface-raised" stroke="#0B0B0C" strokeWidth={1} />
