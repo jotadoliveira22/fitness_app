@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ImportNutritionistPlanInput } from "@fitness-app/shared";
-import { PlusIcon, TrashIcon, XIcon } from "@/components/icons";
+import { fileToBase64 } from "@/lib/file-to-base64";
+import { PlusIcon, TrashIcon, XIcon, CameraIcon } from "@/components/icons";
 
 interface ItemDraft {
   foodDescription: string;
@@ -39,6 +40,8 @@ export function ImportProfessionalPlanForm({ importProfessionalPlanAction }: Imp
   const [planName, setPlanName] = useState("");
   const [meals, setMeals] = useState<MealDraft[]>([emptyMeal()]);
   const [submitting, setSubmitting] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   function updateMeal(i: number, patch: Partial<MealDraft>) {
     setMeals((prev) => prev.map((m, idx) => (idx === i ? { ...m, ...patch } : m)));
@@ -70,9 +73,52 @@ export function ImportProfessionalPlanForm({ importProfessionalPlanAction }: Imp
     );
   }
 
+  async function scanFile(file: File) {
+    setScanning(true);
+    setScanError(null);
+    try {
+      const base64 = await fileToBase64(file);
+      const isPdf = file.type === "application/pdf";
+      const res = await fetch("/api/nutrition/scan-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileBase64: base64, mediaType: file.type, isPdf }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setScanError(data.error ?? "No se pudo leer el archivo.");
+        return;
+      }
+      setPlanName(String(data.planName ?? ""));
+      setMeals(
+        (data.meals ?? []).map((m: { name?: string; timeOfDay?: string; items?: Array<Record<string, unknown>> }) => ({
+          name: m.name ?? "",
+          timeOfDay: m.timeOfDay ?? "",
+          items:
+            m.items && m.items.length > 0
+              ? m.items.map((it) => ({
+                  foodDescription: String(it.foodDescription ?? ""),
+                  quantity: it.quantity !== undefined ? String(it.quantity) : "",
+                  unit: it.unit !== undefined ? String(it.unit) : "",
+                  calories: it.calories !== undefined ? String(it.calories) : "",
+                  proteinG: it.proteinG !== undefined ? String(it.proteinG) : "",
+                  carbsG: it.carbsG !== undefined ? String(it.carbsG) : "",
+                  fatG: it.fatG !== undefined ? String(it.fatG) : "",
+                }))
+              : [emptyItem()],
+        })),
+      );
+    } catch {
+      setScanError("No se pudo leer el archivo.");
+    } finally {
+      setScanning(false);
+    }
+  }
+
   function reset() {
     setPlanName("");
     setMeals([emptyMeal()]);
+    setScanError(null);
     setOpen(false);
   }
 
@@ -129,6 +175,24 @@ export function ImportProfessionalPlanForm({ importProfessionalPlanAction }: Imp
           <XIcon className="h-4 w-4 text-muted" />
         </button>
       </div>
+
+      <label className="mb-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-accent/40 bg-accent/5 py-3 text-xs font-semibold text-accent">
+        <CameraIcon className="h-4 w-4" />
+        {scanning ? "Leyendo..." : "Escanear PDF o foto del plan (completa lo de abajo)"}
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void scanFile(file);
+            e.target.value = "";
+          }}
+          disabled={scanning}
+          className="hidden"
+        />
+      </label>
+      {scanError && <p className="mb-3 text-xs text-red-400">{scanError}</p>}
+      <p className="mb-4 text-center text-[10px] text-muted">— o cargalo a mano abajo —</p>
 
       <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted">Nombre del plan</label>
       <input
