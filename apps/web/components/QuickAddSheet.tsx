@@ -157,6 +157,10 @@ export function QuickAddSheet() {
         proteinG: c.proteinG,
         carbsG: c.carbsG,
         fatG: c.fatG,
+        ...(c.fiberG !== undefined ? { fiberG: c.fiberG } : {}),
+        ...(c.sugarG !== undefined ? { sugarG: c.sugarG } : {}),
+        ...(c.saturatedFatG !== undefined ? { saturatedFatG: c.saturatedFatG } : {}),
+        ...(c.sodiumMg !== undefined ? { sodiumMg: c.sodiumMg } : {}),
         confidence: c.confidence,
       })),
     });

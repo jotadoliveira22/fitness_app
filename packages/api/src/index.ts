@@ -103,7 +103,18 @@ export {
 export { materializeRoutineForDate } from "./engines/training/materialize-routine.js";
 
 // Nutrition Engine
-export { listAllFoods, getFoodById, type FoodRecord } from "./data-access/foods.repository.js";
+export {
+  listAllFoods,
+  getFoodById,
+  searchFoods,
+  listNutrients,
+  getFoodMicronutrients,
+  listFoodPortions,
+  type FoodRecord,
+  type NutrientRecord,
+  type FoodMicronutrientEntry,
+  type FoodPortionRecord,
+} from "./data-access/foods.repository.js";
 export {
   getPlanById,
   getActivePlan,

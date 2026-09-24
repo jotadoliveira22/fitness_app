@@ -61,6 +61,11 @@ const confirmedMealItemSchema = z.object({
   proteinG: z.number().nonnegative().default(0),
   carbsG: z.number().nonnegative().default(0),
   fatG: z.number().nonnegative().default(0),
+  fiberG: z.number().nonnegative().optional(),
+  sugarG: z.number().nonnegative().optional(),
+  saturatedFatG: z.number().nonnegative().optional(),
+  sodiumMg: z.number().nonnegative().optional(),
+  micronutrients: z.record(z.string(), z.number()).optional(),
   confidence: z.number().min(0).max(1).optional(),
 });
 

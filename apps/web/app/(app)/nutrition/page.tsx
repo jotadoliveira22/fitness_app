@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getToday, getLogsForDate } from "@fitness-app/api";
+import { getToday, getLogsForDate, listNutrients } from "@fitness-app/api";
 import { ProgressRing } from "@/components/ProgressRing";
 import { IconStat } from "@/components/IconStat";
 import { AppHeader } from "@/components/AppHeader";
-import { DumbbellIcon, GrainIcon, DropletIcon, MealIcon, ChevronRightIcon, TrashIcon } from "@/components/icons";
+import { MacroPercentBar } from "@/components/MacroPercentBar";
+import { MicronutrientPanel } from "@/components/MicronutrientPanel";
+import {
+  DumbbellIcon,
+  GrainIcon,
+  DropletIcon,
+  MealIcon,
+  ChevronRightIcon,
+  TrashIcon,
+  SearchIcon,
+} from "@/components/icons";
 import { deleteMealAction } from "./actions";
 
 const MEAL_LABELS: Record<string, string> = {
@@ -45,7 +55,11 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
   const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : isoToday();
   const isToday = date === isoToday();
 
-  const [today, meals] = await Promise.all([getToday(supabase, user.id), getLogsForDate(supabase, user.id, date)]);
+  const [today, meals, nutrients] = await Promise.all([
+    getToday(supabase, user.id),
+    getLogsForDate(supabase, user.id, date),
+    listNutrients(supabase),
+  ]);
   const { targets, activePlan } = today.nutrition;
 
   const consumed = isToday
@@ -66,6 +80,40 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
   const calorieProgress = targets?.dailyCalories ? (consumed.calories / targets.dailyCalories) * 100 : 0;
   const remaining = targets?.dailyCalories ? Math.max(0, targets.dailyCalories - consumed.calories) : null;
 
+  // Detalle extendido de macros (fibra/azúcar/grasa saturada/sodio) y
+  // micronutrientes: se suman solo los ítems que sí tienen el dato (nunca se
+  // trata "sin dato" como cero), y se marca si hubo al menos un valor real
+  // del día para no mostrar un total engañoso.
+  const allItems = meals.flatMap((m) => m.items);
+  const extended = { fiberG: 0, sugarG: 0, saturatedFatG: 0, sodiumMg: 0 };
+  const hasExtended = { fiberG: false, sugarG: false, saturatedFatG: false, sodiumMg: false };
+  const microTotals = new Map<string, number>();
+  let hasAnyMicronutrientData = false;
+  for (const item of allItems) {
+    if (item.fiberG !== undefined) {
+      extended.fiberG += item.fiberG;
+      hasExtended.fiberG = true;
+    }
+    if (item.sugarG !== undefined) {
+      extended.sugarG += item.sugarG;
+      hasExtended.sugarG = true;
+    }
+    if (item.saturatedFatG !== undefined) {
+      extended.saturatedFatG += item.saturatedFatG;
+      hasExtended.saturatedFatG = true;
+    }
+    if (item.sodiumMg !== undefined) {
+      extended.sodiumMg += item.sodiumMg;
+      hasExtended.sodiumMg = true;
+    }
+    if (item.micronutrients) {
+      hasAnyMicronutrientData = true;
+      for (const [code, amount] of Object.entries(item.micronutrients)) {
+        microTotals.set(code, (microTotals.get(code) ?? 0) + amount);
+      }
+    }
+  }
+
   return (
     <div className="px-5 pt-6">
       <AppHeader initial={today.profile?.displayName ?? user.email ?? "?"} />
@@ -73,9 +121,14 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
         <h1 className="font-display text-2xl font-extrabold">
           Tu Nutrición <span className="text-accent">{formatDateLabel(date)}</span>
         </h1>
-        <Link href="/nutrition/plan" className="flex items-center gap-1 text-xs font-semibold text-accent">
-          Mi plan <ChevronRightIcon className="h-3.5 w-3.5" />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/nutrition/foods" className="flex items-center gap-1 text-xs font-semibold text-accent">
+            <SearchIcon className="h-3.5 w-3.5" /> Alimentos
+          </Link>
+          <Link href="/nutrition/plan" className="flex items-center gap-1 text-xs font-semibold text-accent">
+            Mi plan <ChevronRightIcon className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
       <div className="mb-6 flex items-center gap-2">
         <Link
@@ -139,6 +192,38 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
           value={`${Math.round(consumed.fatG)}${targets?.fatG ? `/${targets.fatG}` : ""}`}
           label="grasas g"
         />
+      </div>
+
+      <div className="card mb-6">
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted">% de calorías por macro</p>
+        <MacroPercentBar proteinG={consumed.proteinG} carbsG={consumed.carbsG} fatG={consumed.fatG} />
+      </div>
+
+      <div className="card mb-6">
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted">Detalle de macros</p>
+        <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+          <div>
+            <p className="font-bold">{hasExtended.fiberG ? `${extended.fiberG.toFixed(1)}g` : "Sin dato"}</p>
+            <p className="text-muted">Fibra</p>
+          </div>
+          <div>
+            <p className="font-bold">{hasExtended.sugarG ? `${extended.sugarG.toFixed(1)}g` : "Sin dato"}</p>
+            <p className="text-muted">Azúcares</p>
+          </div>
+          <div>
+            <p className="font-bold">{hasExtended.saturatedFatG ? `${extended.saturatedFatG.toFixed(1)}g` : "Sin dato"}</p>
+            <p className="text-muted">Grasa saturada</p>
+          </div>
+          <div>
+            <p className="font-bold">{hasExtended.sodiumMg ? `${Math.round(extended.sodiumMg)}mg` : "Sin dato"}</p>
+            <p className="text-muted">Sodio</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <p className="mb-3 text-sm font-semibold">Micronutrientes</p>
+        <MicronutrientPanel nutrients={nutrients} totals={microTotals} hasAnyData={hasAnyMicronutrientData} />
       </div>
 
       <p className="mb-3 text-sm font-semibold">Comidas {isToday ? "de hoy" : "de ese día"}</p>

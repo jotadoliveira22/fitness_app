@@ -9,6 +9,10 @@ export interface MealCandidateItem {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  fiberG?: number;
+  sugarG?: number;
+  saturatedFatG?: number;
+  sodiumMg?: number;
   confidence: number;
   matched: boolean;
 }
@@ -113,6 +117,12 @@ export function matchFoodsFromDescription(foods: FoodRecord[], description: stri
       proteinG: Math.round(food.proteinGPer100g * scale * 10) / 10,
       carbsG: Math.round(food.carbsGPer100g * scale * 10) / 10,
       fatG: Math.round(food.fatGPer100g * scale * 10) / 10,
+      ...(food.fiberGPer100g != null ? { fiberG: Math.round(food.fiberGPer100g * scale * 10) / 10 } : {}),
+      ...(food.sugarGPer100g != null ? { sugarG: Math.round(food.sugarGPer100g * scale * 10) / 10 } : {}),
+      ...(food.saturatedFatGPer100g != null
+        ? { saturatedFatG: Math.round(food.saturatedFatGPer100g * scale * 10) / 10 }
+        : {}),
+      ...(food.sodiumMgPer100g != null ? { sodiumMg: Math.round(food.sodiumMgPer100g * scale * 10) / 10 } : {}),
       confidence,
       matched: true,
     };

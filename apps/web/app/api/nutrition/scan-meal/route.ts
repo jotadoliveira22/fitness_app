@@ -15,6 +15,10 @@ exactamente estos campos:
   "proteinG": number,
   "carbsG": number,
   "fatG": number,
+  "fiberG": number (fibra, estimada),
+  "sugarG": number (azúcares, estimado),
+  "saturatedFatG": number (grasa saturada, estimada),
+  "sodiumMg": number (sodio en mg, estimado),
   "confidence": number entre 0 y 1 (qué tan seguro estás de la estimación)
 }
 Si no identificás ningún alimento, respondé [].`;
@@ -100,6 +104,10 @@ export async function POST(req: Request) {
       proteinG: Number(item.proteinG) || 0,
       carbsG: Number(item.carbsG) || 0,
       fatG: Number(item.fatG) || 0,
+      ...(item.fiberG != null ? { fiberG: Number(item.fiberG) || 0 } : {}),
+      ...(item.sugarG != null ? { sugarG: Number(item.sugarG) || 0 } : {}),
+      ...(item.saturatedFatG != null ? { saturatedFatG: Number(item.saturatedFatG) || 0 } : {}),
+      ...(item.sodiumMg != null ? { sodiumMg: Number(item.sodiumMg) || 0 } : {}),
       confidence: typeof item.confidence === "number" ? item.confidence : 0.5,
       matched: true,
     };

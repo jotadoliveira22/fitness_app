@@ -11,6 +11,11 @@ export interface FoodLogItemInput {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  fiberG?: number | undefined;
+  sugarG?: number | undefined;
+  saturatedFatG?: number | undefined;
+  sodiumMg?: number | undefined;
+  micronutrients?: Record<string, number> | undefined;
   source: ProvenanceSource;
   confidence?: number | undefined;
 }
@@ -27,6 +32,9 @@ export interface FoodLogRecord {
   items: FoodLogItemRecord[];
 }
 
+const ITEM_COLUMNS =
+  "id, food_description, food_id, quantity, unit, calories, protein_g, carbs_g, fat_g, fiber_g, sugar_g, saturated_fat_g, sodium_mg, micronutrients, source, confidence";
+
 function mapItemRow(row: Record<string, unknown>): FoodLogItemRecord {
   return {
     id: row["id"] as string,
@@ -38,6 +46,11 @@ function mapItemRow(row: Record<string, unknown>): FoodLogItemRecord {
     proteinG: row["protein_g"] as number,
     carbsG: row["carbs_g"] as number,
     fatG: row["fat_g"] as number,
+    fiberG: (row["fiber_g"] as number | null) ?? undefined,
+    sugarG: (row["sugar_g"] as number | null) ?? undefined,
+    saturatedFatG: (row["saturated_fat_g"] as number | null) ?? undefined,
+    sodiumMg: (row["sodium_mg"] as number | null) ?? undefined,
+    micronutrients: (row["micronutrients"] as Record<string, number> | null) ?? undefined,
     source: row["source"] as ProvenanceSource,
     confidence: (row["confidence"] as number | null) ?? undefined,
   };
@@ -66,14 +79,16 @@ export async function insertFoodLogWithItems(
     protein_g: item.proteinG,
     carbs_g: item.carbsG,
     fat_g: item.fatG,
+    fiber_g: item.fiberG ?? null,
+    sugar_g: item.sugarG ?? null,
+    saturated_fat_g: item.saturatedFatG ?? null,
+    sodium_mg: item.sodiumMg ?? null,
+    micronutrients: item.micronutrients ?? null,
     source: item.source,
     confidence: item.confidence ?? null,
   }));
 
-  const { data: items, error: itemsError } = await client
-    .from("food_log_items")
-    .insert(itemRows)
-    .select("id, food_description, food_id, quantity, unit, calories, protein_g, carbs_g, fat_g, source, confidence");
+  const { data: items, error: itemsError } = await client.from("food_log_items").insert(itemRows).select(ITEM_COLUMNS);
 
   if (itemsError) throw new DataAccessError("No se pudieron guardar los alimentos de la comida", itemsError);
 
@@ -106,7 +121,7 @@ export async function getLogsForDate(
   for (const log of logRows) {
     const { data: items, error: itemsError } = await client
       .from("food_log_items")
-      .select("id, food_description, food_id, quantity, unit, calories, protein_g, carbs_g, fat_g, source, confidence")
+      .select(ITEM_COLUMNS)
       .eq("food_log_id", log.id);
 
     if (itemsError) throw new DataAccessError("No se pudieron obtener los alimentos registrados", itemsError);
