@@ -19,7 +19,7 @@ export {
   updateOwnPreferences,
   type UserPreferencesRecord,
 } from "./data-access/user-preferences.repository.js";
-export { insertGoals, listActiveGoals, type GoalRecord } from "./data-access/goals.repository.js";
+export { insertGoals, listActiveGoals, updateGoalStatus, type GoalRecord } from "./data-access/goals.repository.js";
 export {
   insertWeightLog,
   getLatestWeightLog,

@@ -1,9 +1,9 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
   getToday,
   getOwnPreferences,
   getLatestMeasurement,
-  insertMeasurement,
   getActiveProgram,
   listEquipmentCatalog,
   listUserEquipmentNames,
@@ -13,6 +13,8 @@ import { computePlanProgress } from "@/lib/plan-progress";
 import { IconStat } from "@/components/IconStat";
 import { EquipmentEditor } from "@/components/EquipmentEditor";
 import { saveEquipmentAction } from "@/app/(app)/workouts/actions";
+import { signOut, saveBodyFat } from "./actions";
+import { GOAL_TYPE_LABELS } from "@/lib/labels";
 import {
   DumbbellIcon,
   FlameIcon,
@@ -23,42 +25,9 @@ import {
   ScaleIcon,
   RulerIcon,
   DropletIcon,
-  UserIcon,
-  BellIcon,
   SettingsIcon,
+  ChevronRightIcon,
 } from "@/components/icons";
-
-async function signOut() {
-  "use server";
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  const { redirect } = await import("next/navigation");
-  redirect("/login");
-}
-
-async function saveBodyFat(formData: FormData) {
-  "use server";
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const value = Number(formData.get("bodyFatPct"));
-  if (!value || value <= 0 || value > 70) return;
-
-  await insertMeasurement(supabase, user.id, { bodyFatPct: value });
-  const { revalidatePath } = await import("next/cache");
-  revalidatePath("/profile");
-}
-
-const SETTINGS_ROWS = [
-  { icon: UserIcon, label: "Cuenta y perfil" },
-  { icon: BellIcon, label: "Notificaciones" },
-  { icon: SettingsIcon, label: "Preferencias de la app" },
-];
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -112,7 +81,7 @@ export default async function ProfilePage() {
           <div className="card mb-6 space-y-3">
             {today.activeGoals.map((goal) => (
               <div key={goal.id} className="flex items-center gap-2 text-sm">
-                <TargetIcon className="h-4 w-4 text-accent" /> {goal.goalType}
+                <TargetIcon className="h-4 w-4 text-accent" /> {GOAL_TYPE_LABELS[goal.goalType]}
               </div>
             ))}
             {prefs?.trainingDaysPerWeek && (
@@ -185,16 +154,12 @@ export default async function ProfilePage() {
       </div>
 
       <p className="mb-3 text-sm font-semibold">Configuración</p>
-      <div className="card mb-6 divide-y divide-border">
-        {SETTINGS_ROWS.map((row) => (
-          <div key={row.label} className="flex items-center justify-between py-3 first:pt-0 last:pb-0 text-sm">
-            <span className="flex items-center gap-2">
-              <row.icon className="h-4 w-4 text-accent" /> {row.label}
-            </span>
-            <span className="text-muted">›</span>
-          </div>
-        ))}
-      </div>
+      <Link href="/profile/edit" className="card mb-6 flex items-center justify-between text-sm">
+        <span className="flex items-center gap-2">
+          <SettingsIcon className="h-4 w-4 text-accent" /> Editar perfil y preferencias
+        </span>
+        <ChevronRightIcon className="h-4 w-4 text-muted" />
+      </Link>
 
       <form action={signOut}>
         <button type="submit" className="btn-secondary w-full">

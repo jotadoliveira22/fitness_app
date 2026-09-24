@@ -63,6 +63,22 @@ export async function insertGoals(
   return (data as GoalRow[]).map(toRecord);
 }
 
+export async function updateGoalStatus(
+  client: SupabaseClient,
+  goalId: string,
+  status: GoalStatus,
+): Promise<GoalRecord> {
+  const { data, error } = await client
+    .from("goals")
+    .update({ status })
+    .eq("id", goalId)
+    .select(COLUMNS)
+    .single<GoalRow>();
+
+  if (error) throw new DataAccessError("No se pudo actualizar el objetivo", error);
+  return toRecord(data);
+}
+
 export async function listActiveGoals(
   client: SupabaseClient,
   userId: string,
