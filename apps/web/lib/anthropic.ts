@@ -1,7 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-/** Modelo con visión/lectura de documentos usado para foto de comida y lectura de plan de nutricionista. */
-export const VISION_MODEL = "claude-opus-5";
+/**
+ * Modelo con visión/lectura de documentos usado para foto de comida y
+ * lectura de plan de nutricionista. Son tareas de extracción (no
+ * razonamiento complejo), así que Haiku 4.5 alcanza y sale ~5x más barato
+ * que Opus ($1/$5 vs $5/$25 por millón de tokens).
+ */
+export const VISION_MODEL = "claude-haiku-4-5";
 
 export function isAnthropicConfigured(): boolean {
   return !!process.env.ANTHROPIC_API_KEY;
