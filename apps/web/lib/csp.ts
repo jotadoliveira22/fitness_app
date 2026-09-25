@@ -33,7 +33,10 @@ export function buildCsp(nonce: string): string {
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
     `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: blob: https://images.unsplash.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+    // raw.githubusercontent.com: fotos por ejercicio de Free Exercise DB
+    // (dominio público), referenciadas directo desde ahí en vez de
+    // descargarlas y alojarlas — ver exercise_media_seed.sql.
+    `img-src 'self' data: blob: https://images.unsplash.com https://raw.githubusercontent.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
     `font-src 'self'`,
     `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
     `object-src 'none'`,
