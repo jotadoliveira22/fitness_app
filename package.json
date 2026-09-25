@@ -22,5 +22,10 @@
     "dotenv": "^17.4.2",
     "typescript": "^5.6.3",
     "vitest": "^2.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.28"
+    }
   }
 }

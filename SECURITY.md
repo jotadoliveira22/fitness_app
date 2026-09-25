@@ -22,9 +22,9 @@ Se actualiza cada vez que se revisa o se cierra un punto. Última revisión: 202
 | Límite de tamaño en endpoints con IA | 🟢 Agregado hoy | `scan-meal` / `scan-plan` no tenían tope; ya lo tienen. |
 | Rate limiting en endpoints con IA | 🟡 Agregado hoy (best-effort) | En memoria, por instancia serverless — frena el caso común, no un ataque distribuido. Ver §3.1. |
 | MFA / política de contraseña | 🟡 Default de Supabase | No se endureció explícitamente. Ver §3.2. |
-| Content-Security-Policy | 🟡 Pendiente | Los demás headers ya están; CSP requiere probarse antes de activar (riesgo de romper hidratación de Next.js). Ver §4. |
+| Content-Security-Policy | 🟢 Implementado y probado hoy | Nonce por request vía middleware (`apps/web/lib/csp.ts`), patrón oficial de Next.js. Verificado con `next dev` real: los scripts de Next llevan el nonce correcto, sin errores de hidratación. Ver §3.6. |
 | Borrado de cuenta / exportación de datos | 🟢 Implementado hoy | Ver §3.3 y `/profile` (sección "Zona de riesgo"). |
-| Dependencias con CVEs conocidos | 🟡 Bajo impacto real | 4 vulnerabilidades en `postcss` (transitiva de Next), todas de build-time, no de runtime expuesto al usuario. Ver §3.4. |
+| Dependencias con CVEs conocidos | 🟢 Resuelto hoy | `pnpm audit` daba 4 vulnerabilidades en `postcss`; ahora da 0. Ver §3.4. |
 
 ---
 
@@ -79,13 +79,19 @@ Implementado en `packages/api/src/services/account.service.ts`, expuesto en `/pr
 - **Exportar mis datos**: descarga un JSON con todas las filas del usuario en las ~20 tablas principales (perfil, goals, pesos, medidas, check-ins, programas, sesiones, rutinas, equipo, nutrición, targets, comidas, ayunos, fotos, documentos, notificaciones, safety flags). No incluye el detalle anidado más fino (ej. cada set individual dentro de una sesión) — es exportación de primer nivel, ampliable si hace falta más detalle.
 - **Borrar mi cuenta**: requiere escribir la frase exacta "BORRAR MI CUENTA" antes de habilitar el botón (dos pasos, no un solo clic). Borra los archivos del usuario en los buckets privados y llama a `auth.admin.deleteUser` — el resto de las tablas se borra en cascada (`on delete cascade` sobre `user_id`/`id` en todas), verificado contra el schema real.
 
-### 3.4 🟡 Dependencias
+### 3.4 🟢 Dependencias — resuelto
 
-```
-4 vulnerabilities (2 moderate, 2 high) — todas en postcss, vía next
-```
+`pnpm audit` daba 4 vulnerabilidades (2 high, 2 moderate), todas en `postcss` — una dependencia interna fija de Next.js (`next@15.5.25` pinea `postcss@8.4.31` exacto, vulnerable; Next solo la actualiza en su major 16, que implicaría un upgrade grande con riesgo de romper cosas). En vez de saltar de major, se agregó un `pnpm.overrides` en el `package.json` raíz que fuerza `postcss` a `^8.5.28` (versión parcheada) en todo el árbol de dependencias, sin tocar la versión de Next.
 
-Todas son de tiempo de build (lectura de source maps durante compilación), no explotables por un usuario final contra el servidor corriendo. Igual conviene resolverlas con `pnpm update next` cuando saques tiempo, y correr `pnpm audit` periódicamente (podés agregarlo como paso de CI).
+Verificado, no solo asumido: `pnpm audit` ahora da **0 vulnerabilidades**, y corrí `next build` completo (production build real) después del cambio — compila limpio, genera las 20 rutas sin error.
+
+### 3.6 🟢 Content-Security-Policy — resuelto
+
+Implementada con nonce por request en `apps/web/lib/csp.ts` + `apps/web/middleware.ts`, siguiendo el patrón oficial de Next.js para el App Router (Next detecta el nonce en el header de la respuesta y lo aplica solo a los `<script>` que él mismo genera para la hidratación — no hace falta tocar cada componente).
+
+Directivas: bloquea `<iframe>` de terceros embebiendo la app (`frame-ancestors 'none'`), restringe scripts/estilos/conexiones a `'self'` (más `images.unsplash.com` para las fotos de stock y el dominio de tu proyecto Supabase para las fotos de progreso), y prohíbe `<object>`/plugins.
+
+**Verificado con un `next dev` real** (no solo leído el código): corrí el server, pedí `/login`, confirmé que el header `Content-Security-Policy` llega con el nonce, que los `<script>` de Next lo llevan puesto, y que no hay ningún error de hidratación ni overlay de error en el HTML. Después corrí `next build` (producción) completo y compiló sin errores.
 
 ### 3.5 🟢 Ya resuelto hoy
 
@@ -93,16 +99,22 @@ Todas son de tiempo de build (lectura de source maps durante compilación), no e
 - Tope de tamaño de payload en `scan-meal` y `scan-plan` (antes aceptaban cualquier tamaño).
 - Rate limiting best-effort en `scan-meal` / `scan-plan` (ver §3.1 para el alcance real).
 - Safety Layer (ver `packages/api/src/safety/`).
+- Borrado de cuenta + exportación de datos (ver §3.3).
+- Content-Security-Policy con nonce (ver §3.6).
+- Dependencias: 0 vulnerabilidades conocidas (ver §3.4).
 
 ---
 
-## 4. Próximos pasos recomendados (en orden)
+## 4. Próximos pasos recomendados
+
+Todo lo identificado en esta auditoría está resuelto salvo dos cosas que requieren acción tuya, fuera del código:
 
 1. **Subir la política de contraseña + activar MFA opcional** en el dashboard de Supabase (5 minutos, sin código, ver §3.2).
-2. **Content-Security-Policy**: agregarla en `next.config.mjs` una vez probada contra la app real corriendo (para no romper la hidratación de Next.js ni el SDK de Anthropic si algún día se llama desde el cliente).
-3. **`pnpm update next`** para resolver los CVEs de `postcss`.
-4. Migrar el rate limiting en memoria a Upstash Redis cuando el tráfico lo justifique (ver §3.1).
-5. Activar backups automáticos de Point-in-Time Recovery en Supabase si no están activos (Dashboard → Database → Backups) — esto es lo que te salva si alguien (vos, un bug, o un ataque) borra datos por error.
+2. Activar backups automáticos de Point-in-Time Recovery en Supabase si no están activos (Dashboard → Database → Backups) — esto es lo que te salva si alguien (vos, un bug, o un ataque) borra datos por error.
+
+Y una mejora opcional a futuro, no urgente:
+
+3. Migrar el rate limiting en memoria a Upstash Redis cuando el tráfico lo justifique (ver §3.1) — el límite actual ya frena el caso común.
 
 ---
 
