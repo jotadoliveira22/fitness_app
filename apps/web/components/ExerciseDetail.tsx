@@ -13,11 +13,9 @@ const REST_PRESETS = [30, 45, 60, 90, 120];
 const KM_PRESETS = [1, 2, 3, 5, 10];
 
 /**
- * Las instrucciones de los ejercicios importados de SUMIVA vienen en
- * inglés y sin resumir (texto original de Free Exercise DB, sin
- * traducir — ver SUMIVA_LEEME.md). En vez de mostrar el bloque entero
- * siempre, se corta en la primera oración como descripción general y el
- * resto queda detrás de "Ver más".
+ * Las instrucciones vienen como bloque largo (varios pasos). En vez de
+ * mostrar todo siempre, se corta en la primera oración como descripción
+ * general y el resto queda detrás de "Ver más".
  */
 function splitInstructions(text: string): { summary: string; rest: string | null } {
   const match = text.match(/^.+?[.!?](?=\s|$)/);
@@ -116,7 +114,7 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
             {instructions.rest && (
               <>
                 {instructionsOpen && (
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{instructions.rest}</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">{instructions.rest}</p>
                 )}
                 <button
                   type="button"
