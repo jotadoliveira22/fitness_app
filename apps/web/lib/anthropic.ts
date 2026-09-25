@@ -8,6 +8,14 @@ import Anthropic from "@anthropic-ai/sdk";
  */
 export const VISION_MODEL = "claude-haiku-4-5";
 
+/**
+ * Mismo modelo que VISION_MODEL, nombrado aparte para el caso de uso de
+ * analyze_progress (explicar tendencias en texto, no extraer datos de una
+ * imagen) — evita que alguien lea "VISION_MODEL" en ese contexto y se
+ * confunda sobre qué hace la llamada.
+ */
+export const REASONING_MODEL = VISION_MODEL;
+
 export function isAnthropicConfigured(): boolean {
   return !!process.env.ANTHROPIC_API_KEY;
 }

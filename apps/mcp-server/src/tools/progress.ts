@@ -8,9 +8,11 @@ import {
   uploadProgressPhotoSchema,
 } from "@fitness-app/shared";
 import {
+  analyzeProgress,
   finishFast,
   getManageFasting,
   getProgress,
+  getUserContext,
   recordBodyMetrics,
   resolveUserFromAccessToken,
   startFast,
@@ -103,6 +105,48 @@ export function registerProgressTools(server: McpServer): void {
       try {
         const { userId, client } = await resolveUserFromAccessToken(accessToken);
         const result = await recordBodyMetrics(client, userId, input);
+        return respondJson(result);
+      } catch (error) {
+        return respondError(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    "analyze_progress",
+    {
+      title: "Analizar progreso",
+      description:
+        "Métricas, tendencias calculadas (no inventadas), cambios notables y completitud de datos para un período. Devuelve datos crudos para que quien la consuma (vos, ChatGPT) explique — no genera la explicación en texto.",
+      inputSchema: {
+        accessToken: z.string(),
+        period: z.enum(["30d", "90d", "6m", "1y"]).default("30d"),
+        question: z.string().optional(),
+      },
+    },
+    async ({ accessToken, period, question }) => {
+      try {
+        const { userId, client } = await resolveUserFromAccessToken(accessToken);
+        const result = await analyzeProgress(client, userId, period, question);
+        return respondJson(result);
+      } catch (error) {
+        return respondError(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    "get_user_context",
+    {
+      title: "Contexto mínimo del usuario",
+      description:
+        "Objetivo activo, entrenamiento de hoy, sesiones relevantes recientes, recuperación, equipamiento y constraints detectadas — el contexto mínimo para razonar sobre una request puntual, no el historial completo (SPEC §36.2).",
+      inputSchema: { accessToken: z.string() },
+    },
+    async ({ accessToken }) => {
+      try {
+        const { userId, client } = await resolveUserFromAccessToken(accessToken);
+        const result = await getUserContext(client, userId);
         return respondJson(result);
       } catch (error) {
         return respondError(error);

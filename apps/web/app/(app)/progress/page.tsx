@@ -10,6 +10,7 @@ import { getTrainingStats } from "@/lib/training-stats";
 import { BodyMetricsForm } from "@/components/BodyMetricsForm";
 import { ProgressPhotoUploader } from "@/components/ProgressPhotoUploader";
 import { GoalsManager } from "@/components/GoalsManager";
+import { AskProgressAi } from "@/components/AskProgressAi";
 import { DumbbellIcon, FlameIcon, CalendarIcon, TrophyIcon, TrashIcon } from "@/components/icons";
 import {
   recordBodyMetricsAction,
@@ -125,6 +126,8 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
           <p className="text-[10px] text-muted">Adherencia nutrición</p>
         </div>
       </div>
+
+      <AskProgressAi range={range} />
 
       {progress.fastingSummary.totalFasts > 0 && (
         <div className="card mb-6">

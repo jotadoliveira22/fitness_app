@@ -186,3 +186,18 @@ export {
 } from "./engines/progress/upload-progress-photo.js";
 export { getProgress, type ProgressResult } from "./engines/progress/get-progress.js";
 export { getManageFasting, startFast, finishFast, type ManageFastingResult } from "./engines/fasting/manage-fasting.js";
+export {
+  analyzeProgress,
+  type AnalyzeProgressResult,
+  type ProgressTrends,
+  type ProgressDataCompleteness,
+} from "./services/analyze-progress.service.js";
+export {
+  getUserContext,
+  type AiUserContext,
+  type UserContextGoal,
+  type UserContextTodayWorkout,
+  type UserContextRecentSession,
+  type UserContextRecovery,
+  type UserContextConstraint,
+} from "./services/user-context.service.js";
