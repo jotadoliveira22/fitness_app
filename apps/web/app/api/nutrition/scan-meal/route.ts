@@ -51,6 +51,11 @@ export async function POST(req: Request) {
   if (!body.imageBase64 || !body.mediaType) {
     return NextResponse.json({ error: "Falta la imagen" }, { status: 400 });
   }
+  // Tope de tamaño: sin esto, cualquier usuario autenticado podría mandar
+  // payloads enormes y generar costo de API / presión de memoria sin límite.
+  if (body.imageBase64.length > 14_000_000) {
+    return NextResponse.json({ error: "La imagen es demasiado grande (máx. ~10MB)." }, { status: 413 });
+  }
 
   const client = getAnthropicClient();
   let response;

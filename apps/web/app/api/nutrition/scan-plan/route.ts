@@ -56,6 +56,12 @@ export async function POST(req: Request) {
   if (!body.fileBase64 || !body.mediaType) {
     return NextResponse.json({ error: "Falta el archivo" }, { status: 400 });
   }
+  // Tope de tamaño: sin esto, cualquier usuario autenticado podría mandar
+  // payloads enormes y generar costo de API / presión de memoria sin límite.
+  // ~14MB en base64 ≈ 10MB de archivo original, de sobra para una foto/PDF real.
+  if (body.fileBase64.length > 14_000_000) {
+    return NextResponse.json({ error: "El archivo es demasiado grande (máx. ~10MB)." }, { status: 413 });
+  }
 
   const client = getAnthropicClient();
   const fileBlock: Anthropic.ContentBlockParam = body.isPdf
