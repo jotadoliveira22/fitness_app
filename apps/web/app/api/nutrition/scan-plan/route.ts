@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { getAnthropicClient, isAnthropicConfigured, extractJson, VISION_MODEL } from "@/lib/anthropic";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `Sos un asistente que transcribe planes de alimentación de nutricionistas (PDF o foto) a una
 estructura de datos. Respondé ÚNICAMENTE con un objeto JSON (sin texto antes ni después, sin \`\`\`) con esta forma:
@@ -39,6 +40,16 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
+  // 5 documentos cada 10 minutos por usuario (es una acción poco frecuente
+  // — configurar el plan — a diferencia de log_meal). Ver SECURITY.md.
+  const rateLimit = checkRateLimit(`scan-plan:${user.id}`, 5, 10 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Demasiados documentos analizados en poco tiempo. Esperá unos minutos e intentá de nuevo." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds ?? 60) } },
+    );
+  }
 
   if (!isAnthropicConfigured()) {
     return NextResponse.json(

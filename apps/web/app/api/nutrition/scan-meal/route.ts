@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { MealCandidateItem } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 import { getAnthropicClient, isAnthropicConfigured, extractJson, VISION_MODEL } from "@/lib/anthropic";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `Sos un nutricionista que identifica alimentos en una foto de un plato de comida.
 Respondé ÚNICAMENTE con un array JSON (sin texto antes ni después, sin \`\`\`), donde cada elemento tiene
@@ -34,6 +35,16 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
+  // 10 fotos cada 10 minutos por usuario: cada llamada tiene costo real de
+  // API. Ver SECURITY.md sobre el alcance real de este límite en serverless.
+  const rateLimit = checkRateLimit(`scan-meal:${user.id}`, 10, 10 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Demasiadas fotos analizadas en poco tiempo. Esperá unos minutos e intentá de nuevo." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds ?? 60) } },
+    );
+  }
 
   if (!isAnthropicConfigured()) {
     return NextResponse.json(
