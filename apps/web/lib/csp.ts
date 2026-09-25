@@ -13,9 +13,11 @@
  */
 
 export function generateNonce(): string {
-  // crypto.randomUUID() y Buffer están disponibles en el runtime Edge de
-  // Next.js middleware (Buffer vía el polyfill que Next incluye ahí).
-  return Buffer.from(crypto.randomUUID()).toString("base64");
+  // btoa es Web API estándar (disponible en el runtime Edge real de
+  // Vercel y en Node 18+); Buffer, en cambio, solo estaba disponible en
+  // la emulación local de `next dev`, no en el Edge real de producción
+  // — con Buffer el middleware tiraba en cada request ahí.
+  return btoa(crypto.randomUUID());
 }
 
 export function buildCsp(nonce: string): string {
