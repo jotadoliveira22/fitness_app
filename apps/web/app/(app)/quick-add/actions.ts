@@ -31,6 +31,8 @@ export async function logCheckinAction(formData: FormData) {
     return value >= 1 && value <= 5 ? value : undefined;
   };
 
+  // El formulario de quick-add no incluye notas de texto libre todavía,
+  // así que safetyFlags siempre viene vacío acá — se ignora a propósito.
   await saveDailyCheckin(supabase, user.id, {
     energy: toScale("energy"),
     sleepQuality: toScale("sleepQuality"),

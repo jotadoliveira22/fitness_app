@@ -105,9 +105,13 @@ export function QuickAddSheet() {
     if (!mealDescription.trim()) return;
     setMealSearching(true);
     setMealError(null);
-    const candidates = await logMealCandidatesAction(mealDescription.trim());
-    setMealCandidates(candidates);
+    const result = await logMealCandidatesAction(mealDescription.trim());
     setMealSearching(false);
+    if (result.safetyMessage) {
+      setMealError(result.safetyMessage);
+      return;
+    }
+    setMealCandidates(result.candidates);
     setPanel("meal-review");
   }
 

@@ -6,7 +6,9 @@ import {
   listFastingSessionsSince,
   type FastingSessionRecord,
 } from "../../data-access/fasting-sessions.repository.js";
-import { DataAccessError, NotFoundError } from "../../data-access/errors.js";
+import { recordSafetyFlags } from "../../data-access/safety-flags.repository.js";
+import { DataAccessError, NotFoundError, SafetyBlockedError } from "../../data-access/errors.js";
+import { evaluateFastingRequest } from "../../safety/safety-layer.js";
 
 function daysAgoIso(days: number): string {
   const date = new Date();
@@ -33,6 +35,10 @@ export async function getManageFasting(
 /**
  * SPEC §35.3: el ayuno se trackea, no se gamifica. No hay lógica de
  * "récords" ni de sugerir duraciones cada vez más largas acá.
+ *
+ * Antes de crear la sesión, la Safety Layer evalúa la duración objetivo:
+ * bloquea ayunos que requieren supervisión médica y marca (sin bloquear)
+ * los que ya exceden un ayuno intermitente estándar.
  */
 export async function startFast(
   client: SupabaseClient,
@@ -43,6 +49,15 @@ export async function startFast(
   if (active) {
     throw new DataAccessError("Ya tenés un ayuno activo. Finalizalo antes de iniciar uno nuevo.");
   }
+
+  const safety = evaluateFastingRequest(targetHours);
+  if (safety.flags.length > 0) {
+    await recordSafetyFlags(client, userId, "start_fast", safety.flags);
+  }
+  if (!safety.allowed) {
+    throw new SafetyBlockedError(safety.flags[0]!.message, safety.flags);
+  }
+
   return insertFastingSession(client, userId, targetHours);
 }
 

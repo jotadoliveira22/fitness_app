@@ -20,15 +20,24 @@ function revalidateNutrition() {
   revalidatePath("/home");
 }
 
-export async function logMealCandidatesAction(description: string): Promise<MealCandidateItem[]> {
+export interface LogMealCandidatesResult {
+  candidates: MealCandidateItem[];
+  /** Mensaje de la Safety Layer si detectó una señal de riesgo (ej. patrón
+   * de trastorno alimentario) en la descripción — la UI debe mostrarlo en
+   * vez de avanzar a la revisión de la comida. */
+  safetyMessage: string | null;
+}
+
+export async function logMealCandidatesAction(description: string): Promise<LogMealCandidatesResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return [];
+  if (!user) return { candidates: [], safetyMessage: null };
 
-  const result = await logMeal(supabase, description);
-  return result.candidates;
+  const result = await logMeal(supabase, user.id, description);
+  const blocking = result.safetyFlags.find((f) => f.severity === "block");
+  return { candidates: result.candidates, safetyMessage: blocking?.message ?? null };
 }
 
 export async function saveMealAction(input: SaveMealInput) {

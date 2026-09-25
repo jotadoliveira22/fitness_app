@@ -5,7 +5,9 @@ import { getLatestWeightLog } from "../../data-access/weight-logs.repository.js"
 import { listActiveGoals } from "../../data-access/goals.repository.js";
 import { insertPlan, type NutritionPlanRecord } from "../../data-access/nutrition-plans.repository.js";
 import { insertTargetsForPlan, type NutrientTargetsRecord } from "../../data-access/nutrient-targets.repository.js";
+import { recordSafetyFlags } from "../../data-access/safety-flags.repository.js";
 import { DataAccessError } from "../../data-access/errors.js";
+import { evaluateNutritionTargets, type SafetyFlag } from "../../safety/safety-layer.js";
 
 const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentary: 1.2,
@@ -30,6 +32,7 @@ function calculateAge(dateOfBirth: string): number {
 export interface GeneratedPlanResult {
   plan: NutritionPlanRecord;
   targets: NutrientTargetsRecord;
+  safetyFlags: SafetyFlag[];
 }
 
 /**
@@ -75,9 +78,21 @@ export async function generateAiNutritionPlan(
   const calorieAdjustment = relevantGoal ? (GOAL_CALORIE_ADJUSTMENT[relevantGoal.goalType] ?? 0) : 0;
   const dailyCalories = Math.round(tdee + calorieAdjustment);
 
+  // Safety Layer: nunca servimos un objetivo calórico por debajo del piso
+  // seguro sin supervisión profesional (SPEC §22, "avoid unsafe calorie
+  // deficits"). Si el cálculo determinístico cae debajo, se clampea acá y
+  // queda auditado en safety_flags — el clamp ocurre antes de calcular
+  // macros para que proteína/grasa/carbos sean consistentes con el valor
+  // final.
+  const safety = evaluateNutritionTargets({ dailyCalories, biologicalSex: profile.biologicalSex });
+  const safeCalories = safety.dailyCalories;
+  if (safety.flags.length > 0) {
+    await recordSafetyFlags(client, userId, "generate_ai_nutrition_plan", safety.flags);
+  }
+
   const proteinG = Math.round(weightKg * 2);
-  const fatG = Math.round((dailyCalories * 0.25) / 9);
-  const carbsG = Math.max(0, Math.round((dailyCalories - proteinG * 4 - fatG * 9) / 4));
+  const fatG = Math.round((safeCalories * 0.25) / 9);
+  const carbsG = Math.max(0, Math.round((safeCalories - proteinG * 4 - fatG * 9) / 4));
 
   const confidence = profile.biologicalSex === "unspecified" ? 0.7 : 0.85;
 
@@ -85,12 +100,12 @@ export async function generateAiNutritionPlan(
   const targets = await insertTargetsForPlan(client, userId, {
     nutritionPlanId: plan.id,
     source: "ai",
-    dailyCalories,
+    dailyCalories: safeCalories,
     proteinG,
     carbsG,
     fatG,
     confidence,
   });
 
-  return { plan, targets };
+  return { plan, targets, safetyFlags: safety.flags };
 }

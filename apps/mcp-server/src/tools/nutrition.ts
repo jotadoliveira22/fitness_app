@@ -117,8 +117,8 @@ export function registerNutritionTools(server: McpServer): void {
     },
     async ({ accessToken, description }) => {
       try {
-        const { client } = await resolveUserFromAccessToken(accessToken);
-        const result = await logMeal(client, description);
+        const { userId, client } = await resolveUserFromAccessToken(accessToken);
+        const result = await logMeal(client, userId, description);
         return respondJson(result);
       } catch (error) {
         return respondError(error);

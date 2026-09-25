@@ -40,8 +40,8 @@ export function registerCheckinTools(server: McpServer): void {
     async ({ accessToken, ...input }) => {
       try {
         const { userId, client } = await resolveUserFromAccessToken(accessToken);
-        const checkin = await saveDailyCheckin(client, userId, input);
-        return respondJson({ checkin });
+        const { checkin, safetyFlags } = await saveDailyCheckin(client, userId, input);
+        return respondJson({ checkin, safetyFlags });
       } catch (error) {
         return respondError(error);
       }
