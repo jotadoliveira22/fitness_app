@@ -236,7 +236,7 @@ export function ProfileEditForm({ profile, preferences, updateProfileAction }: P
         disabled={submitting}
         className="w-full rounded-full bg-accent py-3.5 text-sm font-bold text-black disabled:opacity-40"
       >
-        {submitting ? "Guardando..." : "Guardar cambios"}
+        {submitting ? "Guardando..." : "Guardar"}
       </button>
     </div>
   );

@@ -331,7 +331,7 @@ export function WorkoutRunner({
           onClick={() => setExerciseIndex((i) => i + 1)}
           className="flex w-full items-center justify-center gap-1 rounded-full bg-accent py-3 text-xs font-bold text-black"
         >
-          Siguiente ejercicio <ChevronRightIcon className="h-3.5 w-3.5" />
+          Siguiente <ChevronRightIcon className="h-3.5 w-3.5" />
         </button>
       )}
 
@@ -342,7 +342,7 @@ export function WorkoutRunner({
           disabled={!allDone || submitting}
           className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
         >
-          {submitting ? "Guardando..." : "Finalizar entrenamiento"}
+          {submitting ? "Guardando..." : "Finalizar"}
         </button>
       )}
     </div>

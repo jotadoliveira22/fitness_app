@@ -288,7 +288,7 @@ export function ImportProfessionalPlanForm({ importProfessionalPlanAction }: Imp
         disabled={!canSubmit || submitting}
         className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
       >
-        {submitting ? "Guardando..." : "Guardar plan"}
+        {submitting ? "Guardando..." : "Guardar"}
       </button>
     </div>
   );

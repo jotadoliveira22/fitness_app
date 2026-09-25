@@ -42,7 +42,7 @@ export function RoutineDetail({
       <form action={startRoutineNowAction} className="mb-5">
         <input type="hidden" name="routineId" value={routine.id} />
         <button type="submit" className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black">
-          Iniciar esta rutina ahora
+          Iniciar
         </button>
       </form>
 

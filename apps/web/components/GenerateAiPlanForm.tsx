@@ -46,7 +46,7 @@ export function GenerateAiPlanForm({ generateAiPlanAction }: GenerateAiPlanFormP
         disabled={submitting}
         className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
       >
-        {submitting ? "Calculando..." : "Generar y activar plan"}
+        {submitting ? "Calculando..." : "Generar plan"}
       </button>
     </div>
   );

@@ -303,7 +303,7 @@ export function QuickAddSheet() {
                   disabled={submitting}
                   className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
                 >
-                  {submitting ? "Guardando..." : "Guardar check-in"}
+                  {submitting ? "Guardando..." : "Guardar"}
                 </button>
               </div>
             )}
@@ -462,7 +462,7 @@ export function QuickAddSheet() {
                     disabled={mealCandidates.length === 0 || submitting}
                     className="flex-1 rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
                   >
-                    {submitting ? "Guardando..." : "Guardar comida"}
+                    {submitting ? "Guardando..." : "Guardar"}
                   </button>
                 </div>
               </div>

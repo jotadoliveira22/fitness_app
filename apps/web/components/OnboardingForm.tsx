@@ -289,7 +289,7 @@ export function OnboardingForm({ saveOnboardingAction }: OnboardingFormProps) {
         disabled={!canSubmit}
         className="w-full rounded-full bg-accent py-3.5 text-sm font-bold text-black disabled:opacity-40"
       >
-        {submitting ? "Guardando..." : "Crear mi plan"}
+        {submitting ? "Guardando..." : "Crear plan"}
       </button>
     </div>
   );

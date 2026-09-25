@@ -114,7 +114,7 @@ export function RoutinesManager({
             className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-black"
           >
             {creating ? <XIcon className="h-3.5 w-3.5" /> : <PlusIcon className="h-3.5 w-3.5" />}
-            {creating ? "Cancelar" : "Crear rutina"}
+            {creating ? "Cancelar" : "Crear"}
           </button>
         </div>
 

@@ -406,7 +406,7 @@ export function RoutineWizard({
             disabled={!name.trim() || submitting}
             className="w-full rounded-full bg-accent py-3 text-xs font-bold text-black disabled:opacity-40"
           >
-            {submitting ? "Guardando..." : "Guardar rutina"}
+            {submitting ? "Guardando..." : "Guardar"}
           </button>
         </div>
       )}

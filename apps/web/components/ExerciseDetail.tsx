@@ -110,7 +110,7 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
           onClick={() => setSheetOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-accent py-3.5 text-sm font-bold text-black"
         >
-          <PlusIcon className="h-4 w-4" /> Agregar a rutina
+          <PlusIcon className="h-4 w-4" /> Agregar
         </button>
       </div>
 

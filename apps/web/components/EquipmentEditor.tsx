@@ -80,7 +80,7 @@ function Section({
         ) : saving ? (
           "Guardando..."
         ) : (
-          "Guardar cambios"
+          "Guardar"
         )}
       </button>
     </div>

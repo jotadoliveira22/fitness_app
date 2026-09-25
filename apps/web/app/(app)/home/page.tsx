@@ -89,7 +89,7 @@ export default async function HomePage() {
               )}
             </div>
             <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black">
-              {today.workout.status === "completed" ? "Ver resumen" : "Comenzar entrenamiento"} →
+              {today.workout.status === "completed" ? "Ver resumen" : "Comenzar"} →
             </span>
           </div>
           <img
@@ -161,7 +161,7 @@ export default async function HomePage() {
               href="/home?checkin=1"
               className="flex items-center gap-2 rounded-full bg-accent px-3 py-2 text-[11px] font-bold text-black"
             >
-              Hacer check-in →
+              Check-in →
             </Link>
           )}
         </div>

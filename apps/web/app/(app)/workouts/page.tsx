@@ -182,7 +182,7 @@ export default async function WorkoutsPage({ searchParams }: WorkoutsPageProps) 
                             href={`/workouts/session/${today.workout.sessionId}`}
                             className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-black"
                           >
-                            Iniciar entrenamiento →
+                            Iniciar →
                           </Link>
                           <form action={skipWorkoutAction}>
                             <input type="hidden" name="sessionId" value={today.workout.sessionId} />
