@@ -116,26 +116,37 @@ export async function getLogsForDate(
   if (logsError) throw new DataAccessError("No se pudieron obtener las comidas del día", logsError);
 
   const logRows = logs as Array<{ id: string; user_id: string; log_date: string; meal_type: MealType }>;
-  const results: FoodLogRecord[] = [];
+  if (logRows.length === 0) return [];
 
-  for (const log of logRows) {
-    const { data: items, error: itemsError } = await client
-      .from("food_log_items")
-      .select(ITEM_COLUMNS)
-      .eq("food_log_id", log.id);
+  // Una sola query para los items de todas las comidas del día en vez de
+  // una por comida (N+1): getLogsForDate corre en getToday, que se llama
+  // en casi todas las páginas, así que este round-trip extra por comida
+  // se sentía en cada navegación.
+  const { data: allItems, error: itemsError } = await client
+    .from("food_log_items")
+    .select(`${ITEM_COLUMNS}, food_log_id`)
+    .in(
+      "food_log_id",
+      logRows.map((l) => l.id),
+    );
 
-    if (itemsError) throw new DataAccessError("No se pudieron obtener los alimentos registrados", itemsError);
+  if (itemsError) throw new DataAccessError("No se pudieron obtener los alimentos registrados", itemsError);
 
-    results.push({
-      id: log.id,
-      userId: log.user_id,
-      logDate: log.log_date,
-      mealType: log.meal_type,
-      items: (items as Array<Record<string, unknown>>).map(mapItemRow),
-    });
+  const itemsByLogId = new Map<string, FoodLogItemRecord[]>();
+  for (const row of allItems as Array<Record<string, unknown>>) {
+    const logId = row["food_log_id"] as string;
+    const list = itemsByLogId.get(logId) ?? [];
+    list.push(mapItemRow(row));
+    itemsByLogId.set(logId, list);
   }
 
-  return results;
+  return logRows.map((log) => ({
+    id: log.id,
+    userId: log.user_id,
+    logDate: log.log_date,
+    mealType: log.meal_type,
+    items: itemsByLogId.get(log.id) ?? [],
+  }));
 }
 
 export async function deleteFoodLog(client: SupabaseClient, foodLogId: string): Promise<void> {

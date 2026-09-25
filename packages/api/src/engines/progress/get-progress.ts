@@ -11,7 +11,7 @@ import { listFastingSessionsSince } from "../../data-access/fasting-sessions.rep
 import { countSessionsSince, type TrainingAdherenceCounts } from "../../data-access/workout-sessions.repository.js";
 import { listDistinctLogDatesSince } from "../../data-access/food-logs.repository.js";
 import { getMaxWeightPerExercise } from "../../data-access/workout-sets.repository.js";
-import { getExerciseById } from "../../data-access/exercises.repository.js";
+import { getExercisesByIds } from "../../data-access/exercises.repository.js";
 
 function rangeToSinceDate(range: ProgressRange): Date {
   const now = new Date();
@@ -100,17 +100,24 @@ export async function getProgress(
     longestDurationHours: durationsHours.length > 0 ? Math.round(Math.max(...durationsHours) * 10) / 10 : null,
   };
 
-  const personalRecords: PersonalRecordEntry[] = [];
-  for (const entry of maxWeights) {
-    const exercise = await getExerciseById(client, entry.exerciseId);
-    if (!exercise) continue;
-    personalRecords.push({
-      exerciseId: entry.exerciseId,
-      exerciseName: exercise.name,
-      maxWeightKg: entry.maxWeightKg,
-      reps: entry.reps,
-    });
-  }
+  // Una sola query para todos los ejercicios con PR en vez de una por
+  // ejercicio (N+1) — mismo fix que food-logs / nutrition-plan-content.
+  const exercisesById = await getExercisesByIds(
+    client,
+    maxWeights.map((e) => e.exerciseId),
+  );
+  const personalRecords: PersonalRecordEntry[] = maxWeights
+    .map((entry) => {
+      const exercise = exercisesById.get(entry.exerciseId);
+      if (!exercise) return null;
+      return {
+        exerciseId: entry.exerciseId,
+        exerciseName: exercise.name,
+        maxWeightKg: entry.maxWeightKg,
+        reps: entry.reps,
+      };
+    })
+    .filter((r): r is PersonalRecordEntry => r !== null);
 
   return {
     range,

@@ -149,23 +149,27 @@ export async function getLatestVersionContent(
   if (mealsError) throw new DataAccessError("No se pudieron obtener las comidas del plan", mealsError);
 
   const mealRows = meals as Array<{ id: string; name: string; time_of_day: string | null }>;
-  const mealRecords: NutritionMealRecord[] = [];
 
-  for (const meal of mealRows) {
-    const { data: items, error: itemsError } = await client
+  // Una sola query para los items de todas las comidas en vez de una por
+  // comida (N+1) — mismo problema y mismo fix que food-logs.repository.ts.
+  const itemsByMealId = new Map<string, NutritionItemRecord[]>();
+  if (mealRows.length > 0) {
+    const { data: allItems, error: itemsError } = await client
       .from("nutrition_plan_items")
       .select(
-        "id, food_description, quantity, unit, calories, protein_g, carbs_g, fat_g, source, confidence, allows_substitution, notes",
+        "id, meal_id, food_description, quantity, unit, calories, protein_g, carbs_g, fat_g, source, confidence, allows_substitution, notes",
       )
-      .eq("meal_id", meal.id);
+      .in(
+        "meal_id",
+        mealRows.map((m) => m.id),
+      );
 
     if (itemsError) throw new DataAccessError("No se pudieron obtener los items de la comida", itemsError);
 
-    mealRecords.push({
-      id: meal.id,
-      name: meal.name,
-      timeOfDay: meal.time_of_day,
-      items: (items as Array<Record<string, unknown>>).map((row) => ({
+    for (const row of allItems as Array<Record<string, unknown>>) {
+      const mealId = row["meal_id"] as string;
+      const list = itemsByMealId.get(mealId) ?? [];
+      list.push({
         id: row["id"] as string,
         foodDescription: row["food_description"] as string,
         quantity: (row["quantity"] as number | null) ?? undefined,
@@ -178,9 +182,17 @@ export async function getLatestVersionContent(
         confidence: (row["confidence"] as number | null) ?? undefined,
         allowsSubstitution: row["allows_substitution"] as boolean,
         notes: (row["notes"] as string | null) ?? undefined,
-      })),
-    });
+      });
+      itemsByMealId.set(mealId, list);
+    }
   }
+
+  const mealRecords: NutritionMealRecord[] = mealRows.map((meal) => ({
+    id: meal.id,
+    name: meal.name,
+    timeOfDay: meal.time_of_day,
+    items: itemsByMealId.get(meal.id) ?? [],
+  }));
 
   return { versionId: version.id, versionNumber: version.version_number, meals: mealRecords };
 }

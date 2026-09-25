@@ -88,6 +88,24 @@ async function attachEquipment(
   }));
 }
 
+/** Batch de getExerciseById — evita N+1 cuando se resuelven varios ejercicios a la vez (ej. récords personales). */
+export async function getExercisesByIds(
+  client: SupabaseClient,
+  exerciseIds: string[],
+): Promise<Map<string, ExerciseRecord>> {
+  if (exerciseIds.length === 0) return new Map();
+
+  const { data, error } = await client
+    .from("exercises")
+    .select(EXERCISE_COLUMNS)
+    .in("id", exerciseIds)
+    .is("deleted_at", null);
+
+  if (error) throw new DataAccessError("No se pudieron obtener los ejercicios", error);
+  const records = await attachEquipment(client, data as ExerciseRow[]);
+  return new Map(records.map((r) => [r.id, r]));
+}
+
 export async function getExerciseById(
   client: SupabaseClient,
   exerciseId: string,
