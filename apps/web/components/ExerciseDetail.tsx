@@ -6,11 +6,28 @@ import type { ExerciseRecord, RoutineRecord } from "@fitness-app/api";
 import type { TrainingContext } from "@fitness-app/shared";
 import { getWorkoutPhoto } from "@/lib/stock-photos";
 import { MUSCLE_GROUP_LABELS } from "@/lib/labels";
-import { ChevronRightIcon, FlameIcon, ClockIcon, PlusIcon, XIcon } from "@/components/icons";
+import { ChevronRightIcon, FlameIcon, ClockIcon, PlusIcon, XIcon, ChevronDownIcon } from "@/components/icons";
 
 const MINUTE_PRESETS = [10, 15, 20, 30, 45, 60];
 const REST_PRESETS = [30, 45, 60, 90, 120];
 const KM_PRESETS = [1, 2, 3, 5, 10];
+
+/**
+ * Las instrucciones de los ejercicios importados de SUMIVA vienen en
+ * inglés y sin resumir (texto original de Free Exercise DB, sin
+ * traducir — ver SUMIVA_LEEME.md). En vez de mostrar el bloque entero
+ * siempre, se corta en la primera oración como descripción general y el
+ * resto queda detrás de "Ver más".
+ */
+function splitInstructions(text: string): { summary: string; rest: string | null } {
+  const match = text.match(/^.+?[.!?](?=\s|$)/);
+  if (!match || match[0].length >= text.length) {
+    return { summary: text, rest: null };
+  }
+  const summary = match[0].trim();
+  const rest = text.slice(match[0].length).trim();
+  return { summary, rest: rest.length > 0 ? rest : null };
+}
 
 interface ExerciseDetailProps {
   exercise: ExerciseRecord;
@@ -31,8 +48,10 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
   const [target, setTarget] = useState<string>(routines[0]?.id ?? "new");
   const [newRoutineName, setNewRoutineName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
 
   const heroPhoto = exercise.mediaUrl ?? getWorkoutPhoto(exercise.modalities[0]);
+  const instructions = exercise.instructions ? splitInstructions(exercise.instructions) : null;
   const effectiveMode = mode === "distance" ? distanceSubMode : mode;
 
   async function confirm() {
@@ -91,7 +110,26 @@ export function ExerciseDetail({ exercise, routines, addExerciseByMinutesAction 
         </p>
         <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight">{exercise.name}</h1>
 
-        {exercise.instructions && <p className="mb-4 mt-3 text-sm leading-relaxed text-muted">{exercise.instructions}</p>}
+        {instructions && (
+          <div className="mb-4 mt-3">
+            <p className="text-sm leading-relaxed text-muted">{instructions.summary}</p>
+            {instructions.rest && (
+              <>
+                {instructionsOpen && (
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{instructions.rest}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setInstructionsOpen((v) => !v)}
+                  className="mt-2 flex items-center gap-1 text-xs font-semibold text-accent"
+                >
+                  {instructionsOpen ? "Ver menos" : "Ver más"}
+                  <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform ${instructionsOpen ? "rotate-180" : ""}`} />
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mb-5 flex flex-wrap gap-2">
           {exercise.caloriesPer30Min && (
