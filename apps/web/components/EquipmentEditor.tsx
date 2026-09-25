@@ -57,12 +57,12 @@ function Section({
               key={eq.id}
               type="button"
               onClick={() => toggle(eq.id)}
-              className={`flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition ${
+              className={`flex items-start gap-2 rounded-xl border p-2.5 text-left text-xs font-semibold transition ${
                 active ? "border-accent bg-accent/15 text-accent" : "border-border bg-surface-raised"
               }`}
             >
-              <DumbbellIcon className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="truncate">{equipmentLabel(eq.name)}</span>
+              <DumbbellIcon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+              <span className="leading-snug">{equipmentLabel(eq.name)}</span>
             </button>
           );
         })}
