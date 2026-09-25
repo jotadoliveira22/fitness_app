@@ -3,11 +3,44 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { BiologicalSex, TrainingContext, ExperienceLevel, NutritionPlanIntent } from "@fitness-app/shared";
-import { updateOwnProfile, updateOwnPreferences, insertMeasurement } from "@fitness-app/api";
+import { updateOwnProfile, updateOwnPreferences, insertMeasurement, exportUserData, deleteUserAccount } from "@fitness-app/api";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signOut() {
   const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
+
+/** Data export (SPEC §21). Devuelve el JSON como string listo para descargar. */
+export async function exportMyDataAction(): Promise<string> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado");
+
+  const data = await exportUserData(supabase, user.id);
+  return JSON.stringify({ exportedAt: new Date().toISOString(), userId: user.id, data }, null, 2);
+}
+
+/**
+ * Borrado de cuenta (SPEC §21), permanente e irreversible. `confirmationText`
+ * exige que el usuario escriba una frase exacta en el formulario — no basta
+ * un solo clic — antes de llegar acá.
+ */
+export async function deleteMyAccountAction(confirmationText: string) {
+  if (confirmationText.trim().toUpperCase() !== "BORRAR MI CUENTA") {
+    throw new Error("Escribí exactamente \"BORRAR MI CUENTA\" para confirmar.");
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado");
+
+  await deleteUserAccount(user.id);
   await supabase.auth.signOut();
   redirect("/login");
 }

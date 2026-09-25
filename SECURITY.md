@@ -23,7 +23,7 @@ Se actualiza cada vez que se revisa o se cierra un punto. Última revisión: 202
 | Rate limiting en endpoints con IA | 🟡 Agregado hoy (best-effort) | En memoria, por instancia serverless — frena el caso común, no un ataque distribuido. Ver §3.1. |
 | MFA / política de contraseña | 🟡 Default de Supabase | No se endureció explícitamente. Ver §3.2. |
 | Content-Security-Policy | 🟡 Pendiente | Los demás headers ya están; CSP requiere probarse antes de activar (riesgo de romper hidratación de Next.js). Ver §4. |
-| Borrado de cuenta / exportación de datos | 🔴 No existe | Falta implementar. Ver §3.3. |
+| Borrado de cuenta / exportación de datos | 🟢 Implementado hoy | Ver §3.3 y `/profile` (sección "Zona de riesgo"). |
 | Dependencias con CVEs conocidos | 🟡 Bajo impacto real | 4 vulnerabilidades en `postcss` (transitiva de Next), todas de build-time, no de runtime expuesto al usuario. Ver §3.4. |
 
 ---
@@ -72,11 +72,12 @@ Supabase Auth por default acepta contraseñas de 6 caracteres y no exige 2FA. Pa
 
 **Acción (la hacés vos, en el dashboard, no requiere código)**: Supabase Dashboard → Authentication → Policies → subir `minimum_password_length` a 10+, y activar MFA (TOTP) como opción para el usuario en Authentication → Providers.
 
-### 3.3 🔴 Borrado de cuenta y exportación de datos
+### 3.3 🟢 Borrado de cuenta y exportación de datos — resuelto
 
-El spec del producto (§21) lo pide como principio de privacidad y es buena práctica general (¿pensás operar en la UE? ahí sería obligatorio por GDPR). Hoy no existe ni un botón ni un endpoint para esto.
+Implementado en `packages/api/src/services/account.service.ts`, expuesto en `/profile` → "Zona de riesgo":
 
-**Cuando quieras, lo armo**: un endpoint que (a) exporte todas las tablas del usuario a JSON descargable, (b) un flujo de borrado que dispare `on delete cascade` (ya está la mayoría de FKs con cascade, así que técnicamente es sencillo) tras una confirmación explícita.
+- **Exportar mis datos**: descarga un JSON con todas las filas del usuario en las ~20 tablas principales (perfil, goals, pesos, medidas, check-ins, programas, sesiones, rutinas, equipo, nutrición, targets, comidas, ayunos, fotos, documentos, notificaciones, safety flags). No incluye el detalle anidado más fino (ej. cada set individual dentro de una sesión) — es exportación de primer nivel, ampliable si hace falta más detalle.
+- **Borrar mi cuenta**: requiere escribir la frase exacta "BORRAR MI CUENTA" antes de habilitar el botón (dos pasos, no un solo clic). Borra los archivos del usuario en los buckets privados y llama a `auth.admin.deleteUser` — el resto de las tablas se borra en cascada (`on delete cascade` sobre `user_id`/`id` en todas), verificado contra el schema real.
 
 ### 3.4 🟡 Dependencias
 
@@ -97,12 +98,11 @@ Todas son de tiempo de build (lectura de source maps durante compilación), no e
 
 ## 4. Próximos pasos recomendados (en orden)
 
-1. **Subir la política de contraseña + activar MFA opcional** en el dashboard de Supabase (5 minutos, sin código).
-2. **Borrado de cuenta + exportación de datos.**
-3. **Content-Security-Policy**: agregarla en `next.config.mjs` una vez probada contra la app real corriendo (para no romper la hidratación de Next.js ni el SDK de Anthropic si algún día se llama desde el cliente).
-4. **`pnpm update next`** para resolver los CVEs de `postcss`.
-5. Migrar el rate limiting en memoria a Upstash Redis cuando el tráfico lo justifique (ver §3.1).
-6. Activar backups automáticos de Point-in-Time Recovery en Supabase si no están activos (Dashboard → Database → Backups) — esto es lo que te salva si alguien (vos, un bug, o un ataque) borra datos por error.
+1. **Subir la política de contraseña + activar MFA opcional** en el dashboard de Supabase (5 minutos, sin código, ver §3.2).
+2. **Content-Security-Policy**: agregarla en `next.config.mjs` una vez probada contra la app real corriendo (para no romper la hidratación de Next.js ni el SDK de Anthropic si algún día se llama desde el cliente).
+3. **`pnpm update next`** para resolver los CVEs de `postcss`.
+4. Migrar el rate limiting en memoria a Upstash Redis cuando el tráfico lo justifique (ver §3.1).
+5. Activar backups automáticos de Point-in-Time Recovery en Supabase si no están activos (Dashboard → Database → Backups) — esto es lo que te salva si alguien (vos, un bug, o un ataque) borra datos por error.
 
 ---
 

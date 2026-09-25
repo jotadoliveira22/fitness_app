@@ -12,8 +12,9 @@ import { getTrainingStats } from "@/lib/training-stats";
 import { computePlanProgress } from "@/lib/plan-progress";
 import { IconStat } from "@/components/IconStat";
 import { EquipmentEditor } from "@/components/EquipmentEditor";
+import { AccountDangerZone } from "@/components/AccountDangerZone";
 import { saveEquipmentAction } from "@/app/(app)/workouts/actions";
-import { signOut, saveBodyFat } from "./actions";
+import { signOut, saveBodyFat, exportMyDataAction, deleteMyAccountAction } from "./actions";
 import { GOAL_TYPE_LABELS } from "@/lib/labels";
 import {
   DumbbellIcon,
@@ -161,11 +162,13 @@ export default async function ProfilePage() {
         <ChevronRightIcon className="h-4 w-4 text-muted" />
       </Link>
 
-      <form action={signOut}>
+      <form action={signOut} className="mb-6">
         <button type="submit" className="btn-secondary w-full">
           Cerrar sesión
         </button>
       </form>
+
+      <AccountDangerZone exportMyDataAction={exportMyDataAction} deleteMyAccountAction={deleteMyAccountAction} />
     </div>
   );
 }

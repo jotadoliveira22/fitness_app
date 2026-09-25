@@ -44,6 +44,7 @@ export {
 } from "./data-access/daily-checkins.repository.js";
 
 export { getProfile, updateProfile, type ProfileWithPreferences } from "./services/profile.service.js";
+export { exportUserData, deleteUserAccount, type UserDataExport } from "./services/account.service.js";
 export { saveProfileSetup, type OnboardingResult } from "./services/onboarding.service.js";
 export { getDailyCheckin, saveDailyCheckin } from "./services/daily-checkin.service.js";
 export { getToday, type TodayResult } from "./services/today.service.js";
