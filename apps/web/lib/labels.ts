@@ -64,6 +64,9 @@ export const EQUIPMENT_LABELS: Record<string, string> = {
   shoulder_press_machine: "Press de hombros en máquina",
   smith_machine: "Máquina Smith",
   rowing_machine: "Máquina de remo",
+  ez_barbell: "Barra EZ",
+  stability_ball: "Pelota de ejercicio",
+  foam_roller: "Rodillo de espuma",
 };
 
 export function equipmentLabel(name: string): string {
