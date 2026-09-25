@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useActionState, useState } from "react";
-import { signIn, signUp, type AuthActionState } from "./actions";
+import { signIn, signUp, signInWithOAuth, type AuthActionState } from "./actions";
 import { PasswordInput } from "@/components/PasswordInput";
+import { GoogleIcon, AppleIcon } from "@/components/icons";
 
 const initialState: AuthActionState = { error: null };
 
@@ -97,6 +98,31 @@ function LoginForm() {
           {pending ? "Un momento..." : mode === "login" ? "Ingresar" : "Comenzar →"}
         </button>
       </form>
+
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted">o continuá con</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <div className="flex gap-3">
+        <form action={signInWithOAuth.bind(null, "google")} className="flex-1">
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm font-semibold"
+          >
+            <GoogleIcon className="h-4 w-4" /> Google
+          </button>
+        </form>
+        <form action={signInWithOAuth.bind(null, "apple")} className="flex-1">
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm font-semibold"
+          >
+            <AppleIcon className="h-4 w-4" /> Apple
+          </button>
+        </form>
+      </div>
 
       <button
         type="button"

@@ -32,6 +32,29 @@ export async function signIn(_prev: AuthActionState, formData: FormData): Promis
   redirect("/home");
 }
 
+/**
+ * Google/Apple (SPEC §17): el mismo callback de /auth/confirm sirve acá
+ * sin cambios — exchangeCodeForSession es agnóstico del provider, y el
+ * alta de profile/preferences + el gate de 18+ (trigger enforce_adult_profile)
+ * ya corren para cualquier fila nueva en auth.users, sin importar cómo se
+ * haya creado. Lo único nuevo es esta redirección inicial al provider.
+ */
+export async function signInWithOAuth(provider: "google" | "apple"): Promise<never> {
+  const supabase = await createClient();
+  const siteUrl = await getSiteUrl();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: `${siteUrl}/auth/confirm` },
+  });
+
+  if (error || !data.url) {
+    redirect(`/login?error=${encodeURIComponent(error?.message ?? "No se pudo iniciar sesión con " + provider)}`);
+  }
+
+  redirect(data.url);
+}
+
 export async function signUp(_prev: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
